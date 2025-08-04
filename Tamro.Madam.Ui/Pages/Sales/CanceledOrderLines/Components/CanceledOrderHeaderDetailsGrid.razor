@@ -1,0 +1,28 @@
+﻿@using Tamro.Madam.Models.Sales.CanceledOrderLines
+<MudDataGrid Items="@Lines" Striped="true"
+             Bordered="true"
+             Filterable="false"
+             Dense="true"
+             ColumnResizeMode="ResizeMode.Column"
+             DragDropColumnReordering="true"
+             ApplyDropClassesOnDragStarted="true">
+    <Columns>
+        <PropertyColumn Property="x => x.OrderLineNo" Title="@DisplayNameHelper.Get(typeof(CanceledOrderLineGridModel), nameof(CanceledOrderLineGridModel.OrderLineNo))" />
+        <PropertyColumn Property="x => x.ItemNo" Title="@DisplayNameHelper.Get(typeof(CanceledOrderLineGridModel), nameof(CanceledOrderLineGridModel.ItemNo))" />
+        <PropertyColumn Property="x => x.ItemName" Title="@DisplayNameHelper.Get(typeof(CanceledOrderLineGridModel), nameof(CanceledOrderLineGridModel.ItemName))" />
+        <PropertyColumn Property="x => x.OrderedQuantity" Title="@DisplayNameHelper.Get(typeof(CanceledOrderLineGridModel), nameof(CanceledOrderLineGridModel.OrderedQuantity))" />
+        <PropertyColumn Property="x => x.CanceledQuantity" Title="@DisplayNameHelper.Get(typeof(CanceledOrderLineGridModel), nameof(CanceledOrderLineGridModel.CanceledQuantity))" />
+        <PropertyColumn Property="x => x.CancelationReason" Title="@DisplayNameHelper.Get(typeof(CanceledOrderLineGridModel), nameof(CanceledOrderLineGridModel.CancelationReason))">
+            <CellTemplate>
+                @StringUtils.ConvertCamelCaseToSentence(context.Item.CancelationReason.ToString())
+            </CellTemplate>
+        </PropertyColumn>  
+        <PropertyColumn Property="x => x.EmailStatus" Title="@DisplayNameHelper.Get(typeof(CanceledOrderLineGridModel), nameof(CanceledOrderLineGridModel.EmailStatus))">
+            <CellTemplate>
+                @StringUtils.ConvertCamelCaseToSentence(context.Item.EmailStatus.ToString())
+            </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.NotificationSendDate" Title="@DisplayNameHelper.Get(typeof(CanceledOrderLineGridModel), nameof(CanceledOrderLineGridModel.NotificationSendDate))" />
+        <PropertyColumn Property="x => x.EmailAddress" Title="@DisplayNameHelper.Get(typeof(CanceledOrderLineGridModel), nameof(CanceledOrderLineGridModel.EmailAddress))" />
+    </Columns>
+</MudDataGrid>

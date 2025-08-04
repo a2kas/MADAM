@@ -1,0 +1,109 @@
+﻿@using Blazor.Flags
+@using Tamro.Madam.Models.General
+@using Tamro.Madam.Models.ItemMasterdata.Items
+@using Tamro.Madam.Models.ItemMasterdata.Items.Bindings
+@using Tamro.Madam.Ui.ComponentExtensions
+
+﻿<MudDialog xs="6" DefaultFocus="DefaultFocus.FirstChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Link" Class="mr-3 mb-n1" />
+            @GetTitle()
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@Model" @ref="@_form" onkeydown="@OnKeyDown" Validation="@(_validator.ValidateValue(Model))">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudAutocomplete Label="@DisplayNameHelper.Get(() => Model.Item)"
+                                     T="ItemClsfModel"
+                                              Required
+                                      MaxItems="20"
+                                              ResetValueOnEmptyText
+                                              Immediate
+                                              Clearable
+                                      Margin="Margin.Dense"
+                                              Dense
+                                      DebounceInterval="200"
+                                              Disabled
+                                      ToStringFunc="@(e => e == null ? null : e.Name)"
+                                      For="@(() => Model.Item)"
+                                      ProgressIndicatorColor="Color.Primary"
+                                      @bind-Value="Model.Item"
+                                      Variant="Variant.Outlined"
+                                      ShowProgressIndicator="true">
+                     </MudAutocomplete>
+                 </MudItem>
+                 <MudItem xs="12">
+                     <MudSelect T="Company"
+                                Label="@DisplayNameHelper.Get(() => Model.Company)"
+                                Variant="Variant.Outlined"
+                                  Dense
+                                  Required
+                                Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))"
+                                Margin="Margin.Dense"
+                                ToStringFunc="@(e => e == null  ? null : e.Name)"
+                                @bind-Value="Model.Company">
+                         @foreach (var company in Classifiers.Companies)
+                        {
+                            <MudSelectItem Style="padding: 0;" T="Company" Value="@company">
+                                <MudStack Row>
+                                 @{
+                                        var flagCountry = BlazorFlagExtensions.GetBlazorFlagCountry<BalticCountry>(company.Country);
+                                        <CountryFlag Style="margin-top: -8px; margin-left: 8px;" Country="@flagCountry" Size="FlagSize.Normal" />
+                                        <MudText>@company.Name</MudText>
+                                    }
+                                </MudStack>
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="@DisplayNameHelper.Get(() => Model.LocalId)"
+                                  @bind-Value="Model.LocalId"
+                                        Immediate
+                                   Variant="Variant.Outlined"
+                                   Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))"
+                                        FullWidth
+                                   Margin="Margin.Dense"
+                                   For="@(() => Model.LocalId)"
+                                        Required>
+                    </MudTextField>
+                </MudItem>
+                <MudItem xs="8">
+                    <MudSelect T="ItemBindingLanguageModel"
+                               Label="@DisplayNameHelper.Get(() => Model.Languages)"
+                               Variant="Variant.Outlined"
+                                  Dense
+                                Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))"
+                                Margin="Margin.Dense"
+                                ToStringFunc="@(e => e == null || e.Language == null ? null : e.Language.Name)"
+                                MultiSelection="true" @bind-SelectedValues="Model.Languages">
+                         @foreach (var language in Classifiers.Languages)
+                        {
+                            var selectLanguage = Model.Languages?.SingleOrDefault(x => x.Language.Code == language.Code);
+                            if (selectLanguage == null)
+                            {
+                                selectLanguage = new ItemBindingLanguageModel()
+                                        {
+                                            Id = 0,
+                                            Language = language,
+                                        };
+                            }
+                            <MudSelectItem T="ItemBindingLanguageModel" Value="@selectLanguage">
+                                <MudStack Row>
+                                 <CountryFlag Country="@BlazorFlagExtensions.GetBlazorFlagCountry(language.Code)" Size="FlagSize.Normal" />
+                                 <MudText Class="pt-2">@selectLanguage.Language.Name</MudText>
+                                    </MudStack>
+                                </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
+        <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))" Variant="Variant.Filled" Color="Color.Primary" Loading="@_saving" OnClick="Submit">Save</MudLoadingButton>
+    </DialogActions>
+</MudDialog>

@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="TamroUtilities.Host.Extensions" Version="2.1.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Tamro.Madam.Application\Tamro.Madam.Application.csproj" />
+    <ProjectReference Include="..\Tamro.Madam.Models\Tamro.Madam.Models.csproj" />
+    <ProjectReference Include="..\Tamro.Madam.Repository\Tamro.Madam.Repository.csproj" />
+    <ProjectReference Include="..\Tamro.Madam.RestApi.Contracts\Tamro.Madam.RestApi.Contracts.csproj" />
+  </ItemGroup>
+
+</Project>

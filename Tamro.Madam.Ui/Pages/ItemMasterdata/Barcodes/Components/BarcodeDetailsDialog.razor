@@ -1,0 +1,90 @@
+﻿@using System.Text.RegularExpressions
+@using Tamro.Madam.Models.Common.Dialog
+@using Tamro.Madam.Models.ItemMasterdata.Items
+@using Tamro.Madam.Ui.Constants
+@using ZXing
+
+﻿<MudDialog xs="6" DefaultFocus="DefaultFocus.FirstChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.QrCodeScanner" Class="mr-3 mb-n1" />
+            @GetTitle()
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@Model" @ref="@_form" onkeydown="@OnKeyDown" Validation="@(_validator.ValidateValue(Model))">
+            <MudGrid>
+                <MudItem sm="7">
+                    <MudTextField Label="@DisplayNameHelper.Get(() => Model.Ean)"
+                        @bind-Value="Model.Ean"
+                        Immediate="true"
+                        Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)"
+                        Variant="Variant.Outlined"
+                        FullWidth="true"
+                        Margin="Margin.Dense"
+                        For="@(() => Model.Ean)"
+                        Required="true">
+                    </MudTextField>
+                </MudItem>
+                <MudItem sm="5">
+                    @if (Model.Ean?.Length == 12 && Regex.IsMatch(Model.Ean, @"^\d+$"))
+                    {
+                        <MudBarcode class="mud-barcode"
+                                @bind-Value="Model.Ean"
+                                BarcodeFormat="BarcodeFormat.EAN_13"
+                                Height="30"
+                                Clickable="false"
+                                StrokeWidth="0.1" />
+                    }
+                </MudItem>
+                <MudItem sm="12">
+                    <MudAutocomplete Label="@DisplayNameHelper.Get(() => Model.Item)"
+                            T="ItemClsfModel"
+                            Required 
+                            MaxItems="20" 
+                            ResetValueOnEmptyText 
+                            Immediate 
+                            Clearable 
+                            Margin="Margin.Dense"
+                            Dense
+                            DebounceInterval="200"
+                            SearchFunc="@SearchItems"
+                            Disabled="IsItemSelectionDisabled || !_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)"
+                            ToStringFunc="@(e => e == null ? null : e.Name)"                           
+                            For="@(() => Model.Item)" 
+                            ProgressIndicatorColor="Color.Primary"    
+                            @bind-Value="Model.Item" 
+                            Variant="Variant.Outlined" 
+                            ShowProgressIndicator="true">
+                    </MudAutocomplete>
+                </MudItem>
+                <MudItem sm="12">
+                    <MudCheckBox Label="@DisplayNameHelper.Get(() => Model.Measure)"
+                            Color="Color.Primary"
+                            Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)"
+                            Size="Size.Medium"
+                            Value="Model.Measure">
+                    </MudCheckBox>
+                </MudItem>
+                @if (State == DialogState.View)
+                {
+                    <MudItem sm="12">
+                        <MudDatePicker Label="@DisplayNameHelper.Get(() => Model.RowVer)"
+                            DateFormat="@GlobalizationConstants.DateTimeFormat"
+                            @bind-Date="Model.RowVer"
+                            Disabled
+                            Margin="Margin.Dense"
+                            HelperText="Date when barcode was last edited"
+                            Variant="Variant.Filled"
+                            For="@(() => Model.RowVer)">
+                        </MudDatePicker>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
+        <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)" Variant="Variant.Filled" Color="Color.Primary" Loading="@_saving" OnClick="Submit">Save</MudLoadingButton>
+    </DialogActions>
+</MudDialog>

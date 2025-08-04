@@ -1,0 +1,20 @@
+﻿@page "/commerce/item-assortment-sales-channels"
+@using Tamro.Madam.Models.Commerce.ItemAssortmentSalesChannels
+@using Tamro.Madam.Ui.Pages.Commerce.ItemAssortmentSalesChannels.Components
+
+<PageTitle>Item assortment sales channels</PageTitle>
+<Permission RequiredPermission="@Permissions.CanViewItemAssortmentSalesChannels" />
+
+<MudPaper>
+
+<div style="display: @(_state.Value.ActiveForm == ItemAssortmentSalesChannelForm.Grid ? "block" : "none");">
+    <ItemAssortmentSalesChannelsDataGrid />
+</div>
+
+@switch (_state.Value.ActiveForm)
+{
+    case ItemAssortmentSalesChannelForm.Details:
+        <ItemAssortmentSalesChannelDetails />
+        break;
+}
+</MudPaper>

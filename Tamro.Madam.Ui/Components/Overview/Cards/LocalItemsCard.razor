@@ -1,0 +1,83 @@
+﻿@using Blazor.Flags
+@using Tamro.Madam.Models.General
+@using Tamro.Madam.Ui.ComponentExtensions
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4">Local Items</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudGrid>
+            <MudItem style="display: flex;" xs="12" Class="py-4 px-6">
+                <MudItem xs="4" Class="py-2">
+                    <CountryFlag Country="@BlazorFlagExtensions.GetBlazorFlagCountry(Models.General.LanguageCountry.LV)" Size="FlagSize.Large" />
+                </MudItem>
+                <MudItem xs="8">
+                    <MudItem style="display: flex;" xs="12">
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.h6">@(Model.CountByCompany?.Where(x => x.Company == Classifiers.Companies.FirstOrDefault(x => x.Name == "LV Wholesale")?.Value)?.FirstOrDefault()?.Count)</MudText>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.h6">LV Wholesale</MudText>
+                        </MudItem>
+                    </MudItem>
+                    <MudItem style="display: flex;" xs="12">
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.h6">@(Model.CountByCompany?.Where(x => x.Company == Classifiers.Companies.FirstOrDefault(x => x.Name == "LV Retail")?.Value)?.FirstOrDefault()?.Count)</MudText>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.h6">LV Retail</MudText>
+                        </MudItem>
+                    </MudItem>
+                </MudItem>
+            </MudItem>
+            <MudItem style="display: flex;" xs="12" Class="py-4 px-6">
+                <MudItem xs="4" Class="py-2">
+                    <CountryFlag Country="@BlazorFlagExtensions.GetBlazorFlagCountry(Models.General.LanguageCountry.LT)" Size="FlagSize.Large" />
+                </MudItem>
+                <MudItem xs="8">
+                    <MudItem style="display: flex;" xs="12">
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.h6">@(Model.CountByCompany?.Where(x => x.Company == Classifiers.Companies.FirstOrDefault(x => x.Name == "LT Wholesale")?.Value)?.FirstOrDefault()?.Count)</MudText>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.h6">LT Wholesale</MudText>
+                        </MudItem>
+                    </MudItem>
+                    <MudItem style="display: flex;" xs="12">
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.h6">@(Model.CountByCompany?.Where(x => x.Company == Classifiers.Companies.FirstOrDefault(x => x.Name == "LT Retail")?.Value)?.FirstOrDefault()?.Count)</MudText>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.h6">LT Retail</MudText>
+                        </MudItem>
+                    </MudItem>
+                </MudItem>
+            </MudItem>
+            <MudItem style="display: flex;" xs="12" Class="py-4 px-6">
+                <MudItem xs="4" Class="py-2">
+                    <CountryFlag Country="@BlazorFlagExtensions.GetBlazorFlagCountry(Models.General.LanguageCountry.EE)" Size="FlagSize.Large" />
+                </MudItem>
+                <MudItem xs="8">
+                    <MudItem style="display: flex;" xs="12">
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.h6">@(Model.CountByCompany?.Where(x => x.Company == Classifiers.Companies.FirstOrDefault(x => x.Name == "EE Wholesale")?.Value)?.FirstOrDefault()?.Count)</MudText>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.h6">EE Wholesale</MudText>
+                        </MudItem>
+                    </MudItem>
+                    <MudItem style="display: flex;" xs="12">
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.h6">@(Model.CountByCompany?.Where(x => x.Company == Classifiers.Companies.FirstOrDefault(x => x.Name == "EE Retail")?.Value)?.FirstOrDefault()?.Count)</MudText>
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudText Typo="Typo.h6">EE Retail</MudText>
+                        </MudItem>
+                    </MudItem>
+                </MudItem>
+            </MudItem>
+        </MudGrid>
+    </MudCardContent>
+</MudCard>

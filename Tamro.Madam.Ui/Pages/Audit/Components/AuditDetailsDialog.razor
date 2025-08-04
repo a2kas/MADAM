@@ -1,0 +1,67 @@
+﻿@using Tamro.Madam.Models.Audit;
+@using Tamro.Madam.Models.Data;
+@using Tamro.Madam.Ui.Components.Audit;
+
+<MudDialog lg="10" xl="8">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.TrackChanges" Class="mr-3 mb-n1" />
+            Audit details
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="6" lg="3">
+                <MudField Label="@DisplayNameHelper.Get(() => Model.EntityTypeName)"
+                          Variant="Variant.Filled"
+                          FullWidth="true"
+                          HelperText="Resource type">
+                    @{
+                        AuditData.AuditEntryDisplayNames.TryGetValue(Model.EntityTypeName, out var displayName);
+                        var displayText = displayName ?? Model.EntityTypeName;
+                    }
+                    @displayText
+                </MudField>
+            </MudItem>
+            <MudItem xs="12" sm="6" lg="3">
+                <MudField Label="@DisplayNameHelper.Get(() => Model.EntityId)"
+                          Variant="Variant.Filled"
+                          FullWidth="true"
+                          HelperText="Resource technical identifier">
+                    @Model.EntityId
+                </MudField>
+            </MudItem>
+            <MudItem xs="12" sm="6" lg="3">
+                <MudField Label="@DisplayNameHelper.Get(() => Model.CreatedBy)"
+                          Variant="Variant.Filled"
+                          FullWidth="true"
+                          HelperText="User who did the changes">
+                    @Model.CreatedBy
+                </MudField>
+            </MudItem>
+            <MudItem xs="12" sm="6" lg="3">
+                <MudField Label="@DisplayNameHelper.Get(() => Model.CreatedDate)"
+                          Variant="Variant.Filled"
+                          FullWidth="true"
+                          HelperText="Date when the changes were done">
+                    @Model.CreatedDate.ToLocalTime().ToString()
+                </MudField>
+            </MudItem>
+            <MudItem xs="12">
+                <MudText Typo="Typo.h6">
+                    @{
+                        AuditData.AuditStateDisplayNames.TryGetValue(Model.StateName, out var displayName);
+                        var displayText = displayName ?? Model.EntityTypeName;
+                    }
+                    Resource @displayText.ToLower()
+                </MudText>
+            </MudItem>
+            <MudItem xs="12">
+                <AuditEntryDetailsGrid Items="@Model.Properties" StateName="@Model.StateName"/>
+            </MudItem>
+        </MudGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Close" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>

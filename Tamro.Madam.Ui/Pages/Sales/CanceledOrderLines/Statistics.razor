@@ -1,0 +1,155 @@
+﻿@page "/sales/canceled-order-lines/statistics"
+@using Tamro.Madam.Models.Data.Sales.CanceledOrderLines
+@using Tamro.Madam.Models.Sales.CanceledOrderLines.Statistics
+@using Tamro.Madam.Ui.Components.DataGrid.Filtering
+@using Tamro.Madam.Ui.Pages.Sales.CanceledOrderLines.Components
+
+<Permission RequiredPermission="@Permissions.CanViewCanceledOrderLines" />
+<PageTitle>Statistics</PageTitle>
+
+
+<MudPaper>
+    <MudGrid Class="d-flex">
+        <MudItem sm="2" xs="12" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.SsidChart" Color="Color.Tertiary" Size="Size.Large" />
+            <MudText Class="gap-4 ma-1" Typo="Typo.h6">Statistics</MudText>
+        </MudItem>
+        <MudItem sm="10" xs="12" Class="d-flex align-items-end justify-end button-bar">
+            <MudButton Variant="Variant.Outlined"
+                       OnClick="OnReset"
+                       Size="Size.Small"
+                       Disabled="@_loading"
+                       StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Primary"
+                       Style="margin-right: 4px; margin-bottom:4px">
+                Reset
+            </MudButton>
+            <MudLoadingButton Variant="Variant.Outlined" Color="Color.Primary"
+                              Label="Export"
+                              StartIcon="@Icons.Custom.FileFormats.FileExcel"
+                              Size="Size.Small"
+                              Style="margin-right: 4px; margin-bottom:4px"
+                              OnClick="OnExportStatistics"
+                              Disabled="@_loading"
+                              IconColor="Color.Surface">
+                Export
+            </MudLoadingButton>
+        </MudItem>
+    </MudGrid>
+
+    <MudGrid>
+        <MudItem xs="12" lg="6">
+            <MudField Label="Filter" Variant="Variant.Outlined" Class="pa-4">
+                <MudForm Model="@_statisticsState.Value.Filter.FilterDatesModel.DateFrom" @ref="_form">
+                <MudGrid>
+                    <MudItem xs="12" sm="10">
+                        <MudDateRangePicker 
+                            @bind-DateRange="@_statisticsState.Value.Filter.FilterDateRange" 
+                            Label="Select Date Range" 
+                            Disabled="@_loading" />
+                    </MudItem>
+                    <MudItem xs="12" sm="2" Class="d-flex justify-content-center">
+                        <MudButton DisableElevation
+                                    Variant="Variant.Outlined"
+                                    OnClick="OnDataFetch"
+                                    Size="Size.Small"
+                                    StartIcon="@Icons.Material.Filled.Search"
+                                    IconColor="Color.Surface"
+                                    Color="Color.Primary"
+                                    Disabled="@_loading">
+                            Filter
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+                </MudForm>
+            </MudField>
+        </MudItem>
+        <MudItem xs="12" lg="3">
+            <MudField Label="View" Variant="Variant.Outlined" Class="pa-4">
+                <MudGrid>
+                    <MudItem xs="12" md="12" class="d-flex align-items-center">
+                        <MudRadioGroup @bind-Value="@ViewType" Class="d-flex" Disabled="@_loading">
+                            <MudRadio Value="StatisticsViewType.Items" Color="Color.Primary">Items</MudRadio>
+                            <MudRadio Value="StatisticsViewType.Customers" Color="Color.Primary">Customers</MudRadio>
+                        </MudRadioGroup>
+                    </MudItem>
+                </MudGrid>
+            </MudField>
+        </MudItem>
+        <MudItem xs="12" lg="3">
+            <MudField Label="Cancellation Reasons" Variant="Variant.Outlined" Class="pa-4">
+                <MudSelect T="string"
+                           MultiSelection="true"
+                           SelectAll="true"
+                           @bind-SelectedValues="CancelationReasonsTexts"
+                           Disabled="@_loading">
+                    @foreach (var reason in CanceledOrderHeaderData.CancellationReasons)
+                    {
+                        <MudSelectItem T="string" Value="@CanceledOrderHeaderData.CancellationReasons[reason.Key]">@CanceledOrderHeaderData.CancellationReasons[reason.Key]</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudField>
+        </MudItem>
+    </MudGrid>
+
+    @if (_loading)
+    {
+        <MudOverlay Visible="true" DarkBackground="false">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </MudOverlay>
+    }
+    else
+    {
+        <MudItem>
+            <MudTabs Outlined="true" Border ApplyEffectsToContainer Class="pa-2 mb-4" Elevation="2">
+                <MudTabPanel Text="Grid" Icon="@Icons.Material.Filled.GridView">
+                    @if (ViewType == StatisticsViewType.Items)
+                    {
+                        <StatisticsItemsGrid Items="@_itemsGridDataSource" RowsPerPage="@_defaultPageSize" Loading="@_loading" />
+                    }
+                    else if (ViewType == StatisticsViewType.Customers)
+                    {
+                        <StatisticsCustomersGrid Items="@_customersGridDataSource" RowsPerPage="@_defaultPageSize" Loading="@_loading" />
+                    }
+                </MudTabPanel>
+                <MudTabPanel Text="Chart" Icon="@Icons.Material.Filled.BarChart">
+                    <MudItem xs="12" lg="5">
+                        <MudField Label="Select" Variant="Variant.Outlined" Class="pa-2">
+                            <MudGrid>
+                                <MudItem xs="12" md="12">
+                                    <MudComboBox @bind-SelectedValues="@SelectedValues"
+                                                 Variant="Variant.Outlined"
+                                                 MultiSelection="true"
+                                                 Label="@_staticticElementsSelectLabel"
+                                                 Editable="true"
+                                                 Clearable
+                                                 Disabled="@_loading">
+                                        @foreach (var item in _items)
+                                        {
+                                            <MudComboBoxItem Value="@item.Value" Text="@item.Text">@item.Text</MudComboBoxItem>
+                                        }
+                                    </MudComboBox>
+                                </MudItem>
+                            </MudGrid>
+                        </MudField>
+                    </MudItem>
+                    @if (_filteredSeries != null && _filteredSeries.Any())
+                    {
+                        <MudChart Class="canceled-lines-statistics-chart"
+                                  ChartType="ChartType.Line"
+                                  ChartSeries="@_filteredSeries"
+                                  XAxisLabels="@XAxisLabels"
+                                  Width="75%"
+                                  Height="75%"
+                                  CanHideSeries
+                                  LegendPosition="Position.Right"
+                                  ChartOptions="@Options" />
+                    }
+                    else
+                    {
+                        <MudTextField T="string" Text="No canceled items found for specified dates range" />
+                    }
+                </MudTabPanel>
+            </MudTabs>
+        </MudItem>
+    }
+</MudPaper>

@@ -1,0 +1,19 @@
+﻿@inherits LayoutComponentBase
+@using Tamro.Madam.Ui.Services.Layout;
+@inject LayoutService _layoutService;
+
+<MudThemeProvider Theme="@_layoutService.CurrentTheme" />
+<MudDialogProvider />
+<MudPopoverProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="0">
+        <MudSpacer />
+    </MudAppBar>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>

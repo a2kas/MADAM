@@ -1,0 +1,27 @@
+﻿@using Tamro.Madam.Models.Finance.Peppol;
+
+<MudDataGrid Items="@Invoices" Striped="true"
+             Bordered="true"
+             Filterable="false"
+             Dense="true"
+             ColumnResizeMode="ResizeMode.Column"
+             DragDropColumnReordering="true"
+             ApplyDropClassesOnDragStarted="true">
+    <Columns>
+        <PropertyColumn Property="x => x.CustomerName" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceConsolidatedGridModel), nameof(PeppolInvoiceConsolidatedGridModel.CustomerName))" />
+        <PropertyColumn Property="x => x.SellerName" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceConsolidatedGridModel), nameof(PeppolInvoiceConsolidatedGridModel.SellerName))" />
+        <PropertyColumn Property="x => x.SellerRegNo" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceConsolidatedGridModel), nameof(PeppolInvoiceConsolidatedGridModel.SellerRegNo))" />
+        <PropertyColumn Property="x => x.InvoiceNumber" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceConsolidatedGridModel), nameof(PeppolInvoiceConsolidatedGridModel.InvoiceNumber))" />
+        <PropertyColumn Property="x => x.InvoiceDate" Format="yyyy-MM-dd" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceConsolidatedGridModel), nameof(PeppolInvoiceConsolidatedGridModel.InvoiceDate))" />
+        <PropertyColumn Property="x => x.InvoiceDueDate" Format="yyyy-MM-dd" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceConsolidatedGridModel), nameof(PeppolInvoiceConsolidatedGridModel.InvoiceDueDate))" />
+        <PropertyColumn Property="x => x.TotalInvoiceTaxAmount" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceConsolidatedGridModel), nameof(PeppolInvoiceConsolidatedGridModel.TotalInvoiceTaxAmount))" />
+        <PropertyColumn Property="x => x.TotalInvoiceAmountWithoutTax" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceConsolidatedGridModel), nameof(PeppolInvoiceConsolidatedGridModel.TotalInvoiceAmountWithoutTax))" />
+        <PropertyColumn Property="x => x.TotalInvoiceAmountWithTax" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceConsolidatedGridModel), nameof(PeppolInvoiceConsolidatedGridModel.TotalInvoiceAmountWithTax))" />
+        <PropertyColumn Property="x => x.Status" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceConsolidatedGridModel), nameof(PeppolInvoiceConsolidatedGridModel.Status))">
+                <CellTemplate>
+                    @StringUtils.ConvertCamelCaseToSentence(context.Item.Status.ToString())
+                </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.CreatedDate" Format="yyyy-MM-dd hh:mm:ss" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.CreatedDate))" />
+    </Columns>
+</MudDataGrid>

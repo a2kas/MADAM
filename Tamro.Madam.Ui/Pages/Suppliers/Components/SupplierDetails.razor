@@ -1,0 +1,168 @@
+﻿@using Tamro.Madam.Models.Suppliers
+
+<MudGrid Class="d-flex">
+    <MudItem sm="4" md="6" xs="12" Class="d-flex align-items-center">
+        <MudIcon Icon="@Icons.Material.Filled.Business" Color="Color.Tertiary" Size="Size.Large" />
+        <MudText Class="gap-4 ma-1" Typo="Typo.h6">@(_state.Value.Model.Id == default ? "Create new supplier" : "Supplier")</MudText>
+    </MudItem>
+
+    <MudItem sm="8" md="6" xs="12" Class="d-flex align-items-end justify-end button-bar">
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="OnClose">Close</MudButton>
+        <MudLoadingButton Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Loading="@_saving" OnClick="Submit" Color="Color.Primary">Save</MudLoadingButton>
+    </MudItem>
+</MudGrid>
+
+<MudForm Model="@_state.Value.Model" @ref="@_form" Validation="@(_validator.ValidateValue(_state.Value.Model))">
+    <MudGrid Class="d-flex pt-3 pb-3">
+        <MudItem xs="12" md="6" lg="4">
+            <MudTextField Label="@DisplayNameHelper.Get(() => _state.Value.Model.Name)" @bind-Value="_state.Value.Model.Name"
+                          Immediate="true"
+                          Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)"
+                          Variant="Variant.Outlined"
+                          FullWidth="true"
+                          For="@(() => _state.Value.Model.Name)"
+                          Required="true">
+            </MudTextField>
+        </MudItem>
+        <MudItem xs="12" md="6" lg="4">
+            <MudTextField Label="@DisplayNameHelper.Get(() => _state.Value.Model.RegistrationNumber)" @bind-Value="_state.Value.Model.RegistrationNumber"
+                          Immediate="true"
+                          Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)"
+                          Variant="Variant.Outlined"
+                          FullWidth="true"
+                          For="@(() => _state.Value.Model.RegistrationNumber)"
+                          Required="true">
+            </MudTextField>
+        </MudItem>
+    </MudGrid>
+    <MudGrid Class="d-flex">
+        <MudItem sm="2" xs="12" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.DocumentScanner" Color="Color.Tertiary" Size="Size.Medium" />
+            <MudText Class="gap-4 ma-1" Typo="Typo.button">Contracts</MudText>
+        </MudItem>
+
+        <MudItem sm="10" xs="12" Class="d-flex align-items-end justify-end button-bar">
+            <MudButton Variant="Variant.Outlined"
+                       Size="Size.Small"
+                       StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Primary"
+                       OnClick="OnResetContractsGrid"
+                       Style="margin-right: 4px; margin-bottom:4px">
+                Reset
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Size="Size.Small"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       IconColor="Color.Surface"
+                       OnClick="OnNewContract">
+                New
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                       StartIcon="@Icons.Material.Filled.Delete"
+                       Size="Size.Small"
+                       Disabled="_selectedSupplierContracts.Count < 1 || !_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       OnClick="OnDeleteContracts"
+                       IconColor="Color.Surface">
+                Delete
+            </MudButton>
+            <MudLoadingButton Variant="Variant.Outlined" Color="Color.Primary"
+                              Label="Export"
+                              StartIcon="@Icons.Custom.FileFormats.FileExcel"
+                              Size="Size.Small"
+                              Style="margin-right: 4px; margin-bottom:4px"
+                              OnClick="OnExportContracts"
+                              IconColor="Color.Surface">
+                Export
+            </MudLoadingButton>
+        </MudItem>
+    </MudGrid>
+<MudDataGrid T="SupplierContractModel" Items="@_state.Value.Model.Contracts"
+             Virtualize="false"
+             @bind-RowsPerPage="_defaultPageSize"
+             Striped="true"
+             Bordered="true"
+             Dense="true"
+             ColumnResizeMode="ResizeMode.Column"
+             DragDropColumnReordering="true"
+             ApplyDropClassesOnDragStarted="true"
+             FilterMode="@DataGridFilterMode.ColumnFilterRow"
+             Filterable="true"
+             MultiSelection="true"
+             SortMode="SortMode.Single"
+             @bind-SelectedItems="_selectedSupplierContracts"
+             Hideable="true"
+             Hover="true"
+             @ref="_supplierContractGrid">
+    <Columns>
+        <SelectColumn Size="Size.Small" T="SupplierContractModel" ShowInFooter="false"></SelectColumn>
+        <TemplateColumn CellStyle="width: 50px" Title="Actions" Filterable="false" Sortable="false">
+            <CellTemplate>
+                <MudGrid Class="action-bar">
+                    <MudItem>
+                        <MudTooltip Text="Open" Placement="Placement.Top">
+                            <MudIconButton DisableElevation
+                                           Icon="@Icons.Material.Filled.OpenInNew"
+                                           Size="Size.Small"
+                                           OnClick="@(() => OnOpenSingleContract(context.Item))"
+                                           Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)">
+                            </MudIconButton>
+                        </MudTooltip>
+                     </MudItem>
+                     <MudItem>
+                        <MudTooltip Text="Delete" Placement="Placement.Top">
+                            <MudIconButton DisableElevation
+                                           Icon="@Icons.Material.Filled.Delete"
+                                           Size="Size.Small"
+                                           OnClick="@(() => OnDeleteSingleContract(context.Item))"
+                                           Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)">
+                            </MudIconButton>
+                        </MudTooltip>
+                    </MudItem>
+                </MudGrid>
+            </CellTemplate>
+        </TemplateColumn>
+            <TemplateColumn Title="@DisplayNameHelper.Get(typeof(SupplierContractModel), nameof(SupplierContractModel.Status))">
+                <CellTemplate>
+                    <MudText Class=@($"status-{context.Item.Status.ToString().ToLower()}")>@context.Item.Status</MudText>
+                </CellTemplate>
+            </TemplateColumn>
+        <PropertyColumn Property="x => x.AgreementDate" Format="yyyy-MM-dd" Title="@DisplayNameHelper.Get(typeof(SupplierContractModel), nameof(SupplierContractModel.AgreementDate))"></PropertyColumn>
+        <PropertyColumn Property="x => x.AgreementValidFrom" Format="yyyy-MM-dd" Title="@DisplayNameHelper.Get(typeof(SupplierContractModel), nameof(SupplierContractModel.AgreementValidFrom))"></PropertyColumn>
+        <PropertyColumn Property="x => x.AgreementValidTo" Format="yyyy-MM-dd" Title="@DisplayNameHelper.Get(typeof(SupplierContractModel), nameof(SupplierContractModel.AgreementValidTo))"></PropertyColumn>
+        <PropertyColumn Property="x => x.PaymentTermInDays" Title="@DisplayNameHelper.Get(typeof(SupplierContractModel), nameof(SupplierContractModel.PaymentTermInDays))"></PropertyColumn>
+        <PropertyColumn Property="x => x.DocumentReference" Title="@DisplayNameHelper.Get(typeof(SupplierContractModel), nameof(SupplierContractModel.DocumentReference))">
+            <CellTemplate>
+                <MudItem>
+                    @if (!string.IsNullOrEmpty(context.Item.DocumentReference))
+                    {
+                            <MudTooltip Text="Download" Placement="Placement.Top">
+                                <MudIconButton DisableElevation
+                                       Icon="@Icons.Material.Filled.FileCopy"
+                                       OnClick="@(() => OnContractDownload(context.Item.DocumentReference))"
+                                       Size="Size.Small">
+                                </MudIconButton>
+                            </MudTooltip>
+                    }
+                </MudItem>
+            </CellTemplate>
+        </PropertyColumn>
+    </Columns>
+    <NoRecordsContent>
+        <MudText>No data to display</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Loading</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+    </PagerContent>
+</MudDataGrid>
+
+    <MudGrid Class="d-flex pt-8">
+        <MudItem xs="12" Class="d-flex align-items-end justify-end button-bar">
+            <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="OnClose">Close</MudButton>
+            <MudLoadingButton Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Loading="@_saving" OnClick="Submit" Color="Color.Primary">Save</MudLoadingButton>
+        </MudItem>
+    </MudGrid>
+</MudForm>

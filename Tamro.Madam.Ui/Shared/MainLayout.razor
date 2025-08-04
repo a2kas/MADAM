@@ -1,0 +1,67 @@
+﻿@using Blazor.Flags
+@using Tamro.Madam.Models.General
+@using Tamro.Madam.Ui.ComponentExtensions
+@using Tamro.Madam.Ui.Services.Layout;
+@inject LayoutService _layoutService
+@inherits LayoutComponentBase
+
+<MudThemeProvider Theme="@_layoutService.CurrentTheme" />
+<MudDialogProvider />
+<MudPopoverProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="0">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudSpacer />
+        @if(_countries.Count > 0)
+        {
+            <MudSelect T="BalticCountry?"
+                       Label="Country"
+                       Value="@_selectedCountry"
+                       ValueChanged="CountryChanged"
+                       Dense="true"
+                       Class="country-select"
+                       Disabled="_countries.Count == 1">
+                @foreach (var country in _countries)
+                {
+                    var countryString = country.ToString();
+                    if (Enum.GetNames(typeof(BalticCountry)).Contains(countryString))
+                    {
+                        <MudSelectItem Value="@(country as BalticCountry?)">
+                            <MudStack Row Style="margin-top: -8px; margin-left: -8px;">
+                                @{
+                                    var flagCountry = BlazorFlagExtensions.GetBlazorFlagCountry<BalticCountry>(country);
+                                    <CountryFlag Country="@flagCountry" Size="FlagSize.Normal" Class="CountryFlag" />
+                                    <MudText Class="pt-2">@Classifiers.GetCountryDisplayName(country)</MudText>
+                                }
+                            </MudStack>
+                        </MudSelectItem>
+                    }
+                }
+            </MudSelect>
+        }
+        <UserMenu OnSettingClick="OnSettingClick" />
+        <MudDivider Class="mx-3 my-5" DividerType="DividerType.Middle" Vertical="true" FlexItem="true"></MudDivider>
+        <MudText Color="@Color.Primary" Typo="Typo.h6"><b>Tamro</b></MudText>
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" Elevation="1">
+        <MudLink Color="Color.Surface" Href="/">
+            <MudDrawerHeader Class="my-1">
+                <MudIcon
+                         Color="Color.Primary"
+                         Icon="@Icons.Material.Filled.DataArray"
+                         Size="Size.Large" />
+                <MudText Color="Color.Surface" Typo="Typo.subtitle2" Class="my-2 mx-1" Align="Align.Left">
+                    <b>Tamro backoffice</b>
+                </MudText>
+            </MudDrawerHeader>
+        </MudLink>
+        <NavMenu />
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraExtraLarge">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>

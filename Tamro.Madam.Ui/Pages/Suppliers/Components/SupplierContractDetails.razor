@@ -1,0 +1,120 @@
+﻿@page "/supplier-contract-details"
+@using Tamro.Madam.Models.Suppliers
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.DocumentScanner" Class="mr-3 mb-n1" />
+
+            Supplier contract
+        </MudText>
+    </TitleContent>
+
+    <DialogContent>
+        <MudGrid Class="d-flex align-items-center justify-end">
+            <MudItem xs="6" Class="d-flex justify-end">
+                <MudButton Variant="Variant.Outlined"
+                           OnClick="OnReset"
+                           Size="Size.Small"
+                           StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Primary"
+                           Style="margin-right: 4px; margin-bottom:4px">
+                    Reset
+                </MudButton>
+                    <MudFileUpload T="IBrowserFile" OnFilesChanged="OnAiGenerate">
+                        <ActivatorContent>
+                        <MudButton Variant="Variant.Outlined"
+                                   Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.AutoFixNormal" IconColor="Color.Surface" Color="Color.Primary"
+                                   Style="margin-right: 4px; margin-bottom:4px">
+                            AI Autofill
+                        </MudButton>
+                        </ActivatorContent>
+                     </MudFileUpload>
+            </MudItem>
+        </MudGrid>
+        <MudForm Model="@SupplierContract" onkeydown="@OnKeyDown" @ref="@_form" Validation="@(_validator.ValidateValue(_initialSupplierContract))" Disabled="@_isExtracting">
+            <MudGrid Class="pt-4">
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="@DisplayNameHelper.Get(() => _state.Value.Model.Name)"
+                                  @bind-Value="_state.Value.Model.Name"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  Disabled="true" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="@DisplayNameHelper.Get(() => _state.Value.Model.RegistrationNumber)"
+                                  @bind-Value="_state.Value.Model.RegistrationNumber"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  Disabled="true" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudDatePicker Label="@DisplayNameHelper.Get(() => SupplierContract.AgreementDate)"
+                                   For="@(() => SupplierContract.AgreementDate)"
+                                   @bind-Date="SupplierContract.AgreementDate"
+                                   Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudNumericField Label="@DisplayNameHelper.Get(() => SupplierContract.PaymentTermInDays)"
+                                     For="@(() => SupplierContract.PaymentTermInDays)"
+                                     @bind-Value="SupplierContract.PaymentTermInDays"
+                                     Variant="Variant.Outlined"
+                                     FullWidth="true" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudDatePicker Label="@DisplayNameHelper.Get(() => SupplierContract.AgreementValidFrom)"
+                                   For="@(() => SupplierContract.AgreementValidFrom)"
+                                   Date="SupplierContract.AgreementValidFrom"
+                                   DateChanged="@(async (date) => {
+                                       SupplierContract.AgreementValidFrom = date;
+                                       await ValidateForm();
+                                   })"
+                                   Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudDatePicker Label="@DisplayNameHelper.Get(() => SupplierContract.AgreementValidTo)"
+                                   For="@(() => SupplierContract.AgreementValidTo)"
+                                   Date="SupplierContract.AgreementValidTo"
+                                   DateChanged="@(async (date) => {
+                                       SupplierContract.AgreementValidTo = date;
+                                       await ValidateForm();
+                                   })"
+                                   Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" md="6" Class="d-flex justify-start">
+                    <MudFileUpload T="IBrowserFile" OnFilesChanged="OnFileSelected">
+                        <ActivatorContent>
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           Disabled="@_isExtracting">
+                                    @(_selectedFile != null ? "Change file" : "Add file")
+                                </MudButton>
+                        </ActivatorContent>
+                        <SelectedTemplate>
+                            @if (_selectedFile != null)
+                            {
+                                <MudText>@_selectedFile.Name</MudText>
+                            }
+                            else
+                            {
+                                <MudText>No File</MudText>
+                            }
+                        </SelectedTemplate>
+                    </MudFileUpload>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+
+        <MudOverlay Visible="@_isExtracting" Class="overlay">
+            <div class="overlay-content">
+                <MudProgressCircular Indeterminate="true" Size="Size.Large" Color="Color.Primary" />
+                <MudText Class="mt-4">Contract is being extracted, please be patient...</MudText>
+            </div>
+        </MudOverlay>
+
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Close">Cancel</MudButton>
+        <MudLoadingButton StartIcon="@Icons.Material.Filled.PlaylistAdd" OnClick="Save" Variant="Variant.Filled" Color="Color.Primary">Add</MudLoadingButton>
+    </DialogActions>
+</MudDialog>

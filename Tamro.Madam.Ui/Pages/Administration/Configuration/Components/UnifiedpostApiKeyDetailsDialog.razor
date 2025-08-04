@@ -1,0 +1,53 @@
+﻿@using Tamro.Madam.Models.Customers.Wholesale.Clsf
+@using Tamro.Madam.Models.Administration.Configuration.Ubl
+@using Tamro.Madam.Models.Common.Dialog
+
+<MudDialog xs="6" DefaultFocus="DefaultFocus.None">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.PlaylistRemove" Class="mr-3 mb-n1" />
+            @GetTitle()
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@Model" @ref="@_form" onkeydown="@OnKeyDown" Validation="@(_validator.ValidateValue(Model))">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudAutocomplete Label="@DisplayNameHelper.Get(() => Model.Customer)"
+                                     T="WholesaleCustomerClsfModel"
+                                     Required
+                                     MaxItems="20"
+                                     ResetValueOnEmptyText
+                                     Immediate
+                                     Clearable
+                                     Margin="Margin.Dense"
+                                     Dense
+                                     DebounceInterval="200"
+                                     SearchFunc="@SearchCustomers"
+                                     ToStringFunc="@(e => e == null ? null : e.DisplayName)"
+                                     For="@(() => Model.Customer)"
+                                     ProgressIndicatorColor="Color.Primary"
+                                     @bind-Value="Model.Customer"
+                                     Variant="Variant.Outlined"
+                                     ShowProgressIndicator="true"
+                                     Disabled="State != DialogState.Create">
+                    </MudAutocomplete>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudTextField Label="@DisplayNameHelper.Get(typeof(UblApiKeyEditModel), nameof(UblApiKeyEditModel.ApiKey))"
+                                  For="@(() => Model.ApiKey)"
+                                  Immediate="false"
+                                  Variant="Variant.Outlined"
+                                  Margin="Margin.Dense"
+                                  @bind-Value="Model.ApiKey"
+                                  Required>
+                    </MudTextField>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
+        <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Loading="@_saving" OnClick="Submit">Save</MudLoadingButton>
+    </DialogActions>
+</MudDialog>

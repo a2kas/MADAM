@@ -1,0 +1,18 @@
+﻿@page "/dev/samples/environmentvariable"
+@using Tamro.Madam.Ui.DependencyInjection
+
+<Permission RequiredPermission="@Permissions.CanAccessDevelopersCorner" />
+<PageTitle>Environment variables</PageTitle>
+
+<MudPaper>
+    <MudTable Items="@environmentVariables">
+        <HeaderContent>
+            <MudTh>Key</MudTh>
+            <MudTh>Value</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Key</MudTd>
+            <MudTd>@context.Value</MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>

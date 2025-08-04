@@ -1,0 +1,141 @@
+﻿@page "/finance/peppol"
+
+@using Tamro.Madam.Application.Access
+@using Tamro.Madam.Models.Data.Finance.Peppol
+@using Tamro.Madam.Models.Finance.Peppol
+@using Tamro.Madam.Ui.Components.DataGrid.Filtering
+@using Tamro.Madam.Ui.Components.Security
+@using Tamro.Madam.Models.Data;
+@using Tamro.Madam.Application.Queries.Finance.Peppol;
+@using Tamro.Madam.Ui.Pages.Finance.Peppol.Components;
+@using Tamro.Madam.Application.Utilities;
+
+<Permission RequiredPermission="@Permissions.CanViewPeppol" />
+<PageTitle>Peppol (public institutions invoicing)</PageTitle>
+
+<MudPaper>
+    <MudGrid Class="d-flex bar-above-item-grid">
+        <MudItem sm="6" xs="12" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.DocumentScanner" Color="Color.Tertiary" Size="Size.Large" />
+            <MudText Class="gap-4 ma-1" Typo="Typo.h6">Peppol (public institutions invoicing)</MudText>
+        </MudItem>
+        <MudItem sm="6" xs="12" Class="d-flex align-items-end justify-end button-bar">
+            <MudButton Variant="Variant.Outlined"
+                       OnClick="OnReset"
+                       Size="Size.Small"
+                       Disabled="@_loading"
+                       StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Primary"
+                       Style="margin-right: 4px; margin-bottom:4px">
+                Reset
+            </MudButton>
+            <MudLoadingButton @bind-Loading="_loading" Variant="Variant.Outlined" Color="Color.Primary"
+                              Label="Export"
+                              Disabled="@_loading"
+                              StartIcon="@Icons.Custom.FileFormats.FileExcel"
+                              Size="Size.Small"
+                              Style="margin-right: 4px; margin-bottom:4px"
+                              OnClick="OnExport"
+                              IconColor="Color.Surface">
+                Export
+            </MudLoadingButton>
+        </MudItem>
+        <MudItem xs="12">
+            <MudTextField T="string" Immediate="true" OnKeyDown="OnBasicSearchKeyDown" @bind-Value="@_query.SearchTerm" Placeholder="Search" Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Material.Filled.Search" Margin="Margin.Dense" IconSize="Size.Small" Size="Size.Small" Variant="Variant.Outlined">
+            </MudTextField>
+        </MudItem>
+     </MudGrid>
+        <MudDataGrid T="PeppolInvoiceGridModel" ServerData="@(DataSource)"
+                Virtualize="true"
+                @bind-RowsPerPage="_defaultPageSize"
+                Loading="@_loading"
+                Striped="true"
+                Bordered="true"
+                Dense="true"
+                ColumnResizeMode="ResizeMode.Column"
+                DragDropColumnReordering="true"
+                ApplyDropClassesOnDragStarted="true"
+                FilterMode="@DataGridFilterMode.ColumnFilterRow"
+                Filterable="true"
+                MultiSelection="true"
+                Hideable="true"
+                Hover="true"
+                @ref="_table">
+        <Columns>
+            <HierarchyColumn T="PeppolInvoiceGridModel" ButtonDisabledFunc="IsRegularInvoice"></HierarchyColumn>
+            <PropertyColumn Property="x => x.FileReference" Sortable="false" Filterable="false" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.FileReference))">
+                <CellTemplate>
+                    <MudItem>
+                        @if (context.Item.Status == PeppolInvoiceStatus.Sent)
+                        {
+                            <MudTooltip Text="Download" Placement="Placement.Top">
+                                <MudIconButton Icon="@Icons.Material.Filled.FileCopy"
+                                               OnClick="@(() => OnInvoiceDownload(ResolveInvoiceNumber(context.Item)))"
+                                               Size="Size.Small">
+                                </MudIconButton>
+                            </MudTooltip>
+                        }
+                    </MudItem>
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.CustomerName" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.CustomerName))" />
+            <PropertyColumn Property="x => x.SellerName" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.SellerName))" />
+            <PropertyColumn Property="x => x.SellerRegNo" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.SellerRegNo))" />
+            <PropertyColumn Property="x => x.InvoiceNumber" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.InvoiceNumber))" />
+            <PropertyColumn Property="x => x.ConsolidationNumber" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.ConsolidationNumber))" />
+            <PropertyColumn Property="x => x.InvoiceDate" Format="yyyy-MM-dd" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.InvoiceDate))">
+                <CellTemplate>
+                    @DateDisplayValueFormatter.FormatOrDefault(context.Item.InvoiceDate, dateFormat: "yyyy-MM-dd")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.InvoiceDueDate" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.InvoiceDueDate))">
+                <CellTemplate>
+                    @DateDisplayValueFormatter.FormatOrDefault(context.Item.InvoiceDueDate, dateFormat: "yyyy-MM-dd")
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.TotalInvoiceTaxAmount" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.TotalInvoiceTaxAmount))" />
+            <PropertyColumn Property="x => x.TotalInvoiceAmountWithoutTax" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.TotalInvoiceAmountWithoutTax))" />
+            <PropertyColumn Property="x => x.TotalInvoiceAmountWithTax" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.TotalInvoiceAmountWithTax))" />
+            <PropertyColumn Property="x => x.Status" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.Status))">
+            <CellTemplate>
+                @StringUtils.ConvertCamelCaseToSentence(context.Item.Status.ToString())
+            </CellTemplate>
+            <FilterTemplate>
+                <DictionaryFilterTemplate FilterOptions="_statusFilterOptions" Options="@PeppolData.InvoiceStatusDisplayNames" ApplyClick="@ApplyStatusFilter" CancelClick="@ClearStatusFilter"></DictionaryFilterTemplate>
+            </FilterTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.Type" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.Type))">
+                <FilterTemplate>
+                    <AutoDictionaryFilterTemplate DataT="PeppolInvoiceGridModel" QueryT="PeppolInvoiceQuery"
+                                                    AffectedGrid="@_table"
+                                                    AffectedQuery="@_query"
+                                                    FilteredFieldName="Type"
+                                                    SelectableOptions="@PeppolData.PeppolInvoiceTypeDisplayNames"
+                                                    QueryProperty="q=>q.Types"
+                                                    FilterOptions="@_typeFilterOptions">
+                    </AutoDictionaryFilterTemplate>
+                </FilterTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.CreatedDate" Title="@DisplayNameHelper.Get(typeof(PeppolInvoiceGridModel), nameof(PeppolInvoiceGridModel.CreatedDate))">
+                <CellTemplate>
+                    @DateDisplayValueFormatter.FormatOrDefault(context.Item.CreatedDate, dateFormat: "yyyy-MM-dd hh:mm:ss")
+                </CellTemplate>
+            </PropertyColumn>
+        </Columns>
+        <ChildRowContent>
+            @if (context.Item.Type == PeppolInvoiceType.Consolidated)
+            {
+                <PeppolConsolidatedInvoicesGrid Invoices="@context.Item.Invoices" />
+            }
+        </ChildRowContent>
+        <NoRecordsContent>
+            <MudText>No data to display</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>

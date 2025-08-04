@@ -1,0 +1,66 @@
+﻿@using Blazor.Flags
+@using Tamro.Madam.Models.ItemMasterdata.Items.Bindings
+@using Tamro.Madam.Ui.ComponentExtensions
+
+<MudDataGrid Striped="true"
+                Bordered="true"
+                Filterable
+                Groupable="true"                                       
+                GroupExpanded="true"
+                FilterMode="DataGridFilterMode.ColumnFilterRow"
+                Dense="true"
+                ColumnResizeMode="ResizeMode.Column"
+                DragDropColumnReordering="true"
+                ApplyDropClassesOnDragStarted="true" 
+                Items="@_itemState.Value.Item.Bindings">
+    <Columns>
+        <TemplateColumn CellStyle="width: 60px" Title="Actions" Filterable="false" Sortable="false">
+            <CellTemplate>
+                <MudItem Class="d-flex align-items-center">
+                    <MudIconButton Color="Color.Primary" OnClick="@(() => OnEditBinding(context.Item))" Icon="@Icons.Material.Sharp.OpenInNew" Title="View" Size="Size.Small">
+                    </MudIconButton>
+                    <MudIconButton Color="Color.Primary" OnClick="@(() => OnDeleteBinding(context.Item.Id))" Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))" Icon="@Icons.Material.Sharp.Delete" Title="Delete" Size="Size.Small">
+                    </MudIconButton>
+                </MudItem>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="@DisplayNameHelper.Get(typeof(ItemBindingModel), nameof(ItemBindingModel.Company))" Filterable="false" SortBy="@_companySortBy">
+            <CellTemplate>
+                <MudStack Row>
+                    <CountryFlag Country="@BlazorFlagExtensions.GetBlazorFlagCountry(context.Item.Company?.Country)" Size="FlagSize.Normal" />
+                    <MudText Class="pt-2">@context.Item.Company?.Name</MudText>
+                </MudStack>
+            </CellTemplate>
+        </TemplateColumn>
+        <PropertyColumn Property="x => x.LocalId" Title="@DisplayNameHelper.Get(typeof(ItemBindingModel), nameof(ItemBindingModel.LocalId))" Groupable="false" />
+        <TemplateColumn Title="@DisplayNameHelper.Get(typeof(ItemBindingModel), nameof(ItemBindingModel.Languages))" Filterable="false" SortBy="@_languageSortBy">
+            <CellTemplate>
+                <MudStack Row>
+                    @foreach (var language in context.Item.Languages)
+                    {
+                        <CountryFlag Country="@BlazorFlagExtensions.GetBlazorFlagCountry(language.Language.Code)" Size="FlagSize.Normal" />
+                    }
+                </MudStack>
+            </CellTemplate>
+        </TemplateColumn>
+        <PropertyColumn Property="x => x.Company.Country" Title="Country" Groupable="true" GroupBy="@_bindingsGroupBy">
+            <GroupTemplate>
+                <MudItem Class="d-flex ml-6">
+                    <MudText Class="pt-2" Style="font-weight: bold;">Country: </MudText>
+                    <CountryFlag Country="@BlazorFlagExtensions.GetBlazorFlagCountry((Models.General.BalticCountry?)context.Grouping.Key)" Size="FlagSize.Normal" />
+                </MudItem>
+            </GroupTemplate>
+        </PropertyColumn>
+    </Columns>
+</MudDataGrid>
+<MudItem sm="10" xs="12" Class="d-flex pt-2">
+    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                OnClick="@OnCreateBinding"
+                StartIcon="@Icons.Material.Filled.Add"
+                Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))"
+                Size="Size.Small"
+                Style="margin-right: 4px; margin-bottom:4px"
+                IconColor="Color.Surface">
+        New
+    </MudButton>
+</MudItem>

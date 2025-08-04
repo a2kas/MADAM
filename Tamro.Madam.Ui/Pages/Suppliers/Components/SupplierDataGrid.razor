@@ -1,0 +1,117 @@
+﻿@using Tamro.Madam.Models.Suppliers;
+
+<MudGrid Class="d-flex">
+    <MudItem sm="2" xs="12" Class="d-flex align-items-center">
+        <MudIcon Icon="@Icons.Material.Filled.Business" Color="Color.Tertiary" Size="Size.Large" />
+        <MudText Class="gap-4 ma-1" Typo="Typo.h6">Suppliers</MudText>
+    </MudItem>
+
+    <MudItem sm="10" xs="12" Class="d-flex align-items-end justify-end button-bar">
+        <MudButton Variant="Variant.Outlined"
+                    OnClick="OnReset"
+                    Size="Size.Small"
+                    Disabled="@_loading"
+                    StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Primary"
+                    Style="margin-right: 4px; margin-bottom:4px">
+            Reset
+        </MudButton>
+        <MudButton Variant="Variant.Outlined"
+                    Size="Size.Small"
+                    OnClick="OnCreate"
+                    Disabled="@_loading"
+                    StartIcon="@Icons.Material.Filled.Add" IconColor="Color.Surface" Color="Color.Primary"
+                    Style="margin-right: 4px; margin-bottom:4px">
+            New
+        </MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.OpenInNew"
+                   Size="Size.Small"
+                   Disabled="@(_loading || _selectedSuppliers.Count != 1)"
+                   OnClick="OnOpen"
+                   Style="margin-right: 4px; margin-bottom:4px"
+                   IconColor="Color.Surface">
+            Open
+        </MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                    StartIcon="@Icons.Material.Filled.History"
+                    Disabled="@(_selectedSuppliers.Count != 1)"
+                    Size="Size.Small"
+                    Style="margin-right: 4px; margin-bottom:4px"
+                    OnClick="OnHistoryView"
+                    IconColor="Color.Surface">
+            History
+        </MudButton>
+        <MudLoadingButton @bind-Loading="_loading" Variant="Variant.Outlined" Color="Color.Primary"
+                            Label="Export"
+                            Disabled="@_loading"
+                            StartIcon="@Icons.Custom.FileFormats.FileExcel"
+                            Size="Size.Small"
+                            Style="margin-right: 4px; margin-bottom:4px"
+                            OnClick="OnExport"
+                            IconColor="Color.Surface">
+            Export
+        </MudLoadingButton>
+    </MudItem>
+    <MudItem xs="12">
+        <MudTextField T="string" Immediate="true" OnKeyDown="OnBasicSearchKeyDown" @bind-Value="@_query.SearchTerm" Placeholder="Search" Adornment="Adornment.End"
+                        AdornmentIcon="@Icons.Material.Filled.Search" Margin="Margin.Dense" IconSize="Size.Small" Size="Size.Small" Variant="Variant.Outlined">
+        </MudTextField>
+    </MudItem>
+</MudGrid>
+<MudDataGrid T="SupplierGridModel" ServerData="@(DataSource)"
+                Virtualize="true"
+                @bind-RowsPerPage="_defaultPageSize"
+                Loading="@_loading"
+                Striped="true"
+                Bordered="true"
+                Dense="true"
+                ColumnResizeMode="ResizeMode.Column"
+                DragDropColumnReordering="true"
+                ApplyDropClassesOnDragStarted="true"
+                FilterMode="@DataGridFilterMode.ColumnFilterRow"
+                SortLabel="Order by"
+                Filterable="true"
+                MultiSelection="true"
+                @bind-SelectedItems="_selectedSuppliers"
+                Hideable="true"
+                Hover="true"
+                @ref="_table">
+    <Columns>
+        <SelectColumn Size="Size.Small" T="SupplierGridModel" ShowInFooter="false"></SelectColumn>
+        <TemplateColumn CellStyle="width: 50px" Title="Actions" Filterable="false" Sortable="false">
+            <CellTemplate>
+                <MudGrid Class="action-bar">
+                    <MudItem>
+                        <MudTooltip Text="Open" Placement="Placement.Top">
+                            <MudIconButton DisableElevation
+                                           Icon="@Icons.Material.Filled.OpenInNew"
+                                           Size="Size.Small"
+                                           OnClick="@(() => OnOpen(context.Item))"
+                                           Color="Color.Primary">
+                            </MudIconButton>
+                        </MudTooltip>
+                    </MudItem>
+                    <MudItem>
+                        <MudTooltip Text="More" Placement="Placement.Top">
+                            <MudMenu Class="more-horiz-icon" icon="@Icons.Material.Outlined.MoreHoriz" Variant="Variant.Text" DisableElevation="true" Size="Size.Small" Dense="true" AnchorOrigin="Origin.CenterLeft">
+                                <MudMenuItem OnClick="@(() => OnHistoryView(context.Item))">History</MudMenuItem>
+                            </MudMenu>
+                        </MudTooltip>
+                    </MudItem>
+                </MudGrid>
+            </CellTemplate>
+        </TemplateColumn>
+        <PropertyColumn Property="x => x.Name" Title="@DisplayNameHelper.Get(typeof(SupplierGridModel), nameof(SupplierGridModel.Name))"></PropertyColumn>
+        <PropertyColumn Property="x => x.RegistrationNumber" Title="@DisplayNameHelper.Get(typeof(SupplierGridModel), nameof(SupplierGridModel.RegistrationNumber))"></PropertyColumn>
+        <PropertyColumn Property="x => x.CreatedDate" Title="@DisplayNameHelper.Get(typeof(SupplierGridModel), nameof(SupplierGridModel.CreatedDate))"></PropertyColumn>
+    </Columns>
+    <NoRecordsContent>
+        <MudText>No data to display</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Loading</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+    </PagerContent>
+</MudDataGrid>

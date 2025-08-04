@@ -1,0 +1,13 @@
+﻿<MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4">Baltic Items</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+    <MudText Typo="Typo.h2" Color="Color.Surface">@Model.Count</MudText>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Variant="Variant.Filled" Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanViewCoreMasterdata))" Color="Color.Primary" Href="/items" StartIcon="@Icons.Material.Filled.ArrowForward">View</MudButton>
+    </MudCardActions>
+</MudCard>

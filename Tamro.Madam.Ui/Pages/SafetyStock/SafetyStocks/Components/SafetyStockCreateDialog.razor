@@ -1,0 +1,166 @@
+﻿@using Tamro.Madam.Models.ItemMasterdata.Items.SafetyStocks
+@using Tamro.Madam.Models.ItemMasterdata.Items.Wholesale.Clsf
+
+<MudDialog DefaultFocus="DefaultFocus.FirstChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Beenhere" Class="mr-3 mb-n1" />
+            Create new safety stock
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudPaper Elevation="3" Class="pa-2">
+            <MudForm Model="@Model" @ref="@_form" Validation="@(_validator.ValidateValue(Model))">
+                <MudContainer Class="mt-2"></MudContainer>
+                <MudGrid Class="d-flex">
+                    <MudItem sm="12" xs="12">
+                        <MudTextField Label="@DisplayNameHelper.Get(() => Model.Comment)" @bind-Value="Model.Comment"
+                                      Immediate="true"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      FullWidth="true"
+                                      MaxLength="300"
+                                      For="@(() => Model.Comment)"
+                                      Required="false">
+                        </MudTextField>
+                    </MudItem>
+                    <MudItem sm="11" xs="10">
+                        <MudAutocomplete Label="@DisplayNameHelper.Get(() => Model.Item)"
+                                         T="WholesaleItemClsfModel"
+                                         Required
+                                         MaxItems="20"
+                                         ResetValueOnEmptyText
+                                         Immediate
+                                         Clearable
+                                         Margin="Margin.Dense"
+                                         Dense
+                                         DebounceInterval="300"
+                                         SearchFunc="@SearchItems"
+                                         ToStringFunc="@(e => e == null ? "" : e.DisplayName)"
+                                         ProgressIndicatorColor="Color.Primary"
+                                         For="@(() => Model.Item)"
+                                         ValueChanged="@OnItemChanged"
+                                         Variant="Variant.Outlined"
+                                         OnlyValidateIfDirty
+                                         ShowProgressIndicator="true">
+                        </MudAutocomplete>
+                    </MudItem>
+                    <MudItem sm="1" xs="2">
+                        <MudIconButton Class="pt-1" OnClick="@ToggleItemInfoPopover" Color="Color.Primary" Size="Size.Large" Icon="@Icons.Material.Filled.Info"/>
+                        <MudOverlay @bind-Visible="_isItemInfoPopoverOpen" AutoClose="true" />
+                        <MudPopover Elevation="12" Open="_isItemInfoPopoverOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
+                            <ChildContent>
+                                @if(_isItemInfoLoading)
+                                {
+                                    <Loader />
+                                }                               
+                                else if (Model.Item != null && !string.IsNullOrEmpty(Model.Item.ItemNo))
+                                {
+                                    <MudSimpleTable Dense Class="label-value-table">
+                                        <tbody>
+                                            <tr>
+                                                <td>@DisplayNameHelper.Get(() => Model.ItemInfo.ItemNo)</td>
+                                                <td>@Model.ItemInfo.ItemNo</td>
+                                            </tr>
+                                            <tr>
+                                                <td>@DisplayNameHelper.Get(() => Model.ItemInfo.ItemName)</td>
+                                                <td>@Model.ItemInfo.ItemName</td>
+                                            </tr>
+                                            <tr>
+                                                <td>@DisplayNameHelper.Get(() => Model.ItemInfo.ItemGroup)</td>
+                                                <td>@Model.ItemInfo.ItemGroup</td>
+                                            </tr>
+                                            <tr>
+                                                <td>@DisplayNameHelper.Get(() => Model.ItemInfo.Brand)</td>
+                                                <td>@Model.ItemInfo.Brand</td>
+                                            </tr>
+                                            <tr>
+                                                <td>@DisplayNameHelper.Get(() => Model.ItemInfo.ProductClass)</td>
+                                                <td>@Model.ItemInfo.ProductClass</td>
+                                            </tr>
+                                           <tr>
+                                                <td>@DisplayNameHelper.Get(() => Model.ItemInfo.SupplierNumber)</td>
+                                                <td>@Model.ItemInfo.SupplierNumber</td>
+                                            </tr>
+                                            <tr>
+                                                <td>@DisplayNameHelper.Get(() => Model.ItemInfo.SupplierNick)</td>
+                                                <td>@Model.ItemInfo.SupplierNick</td>
+                                            </tr>
+                                            <tr>
+                                                <td>@DisplayNameHelper.Get(() => Model.ItemInfo.Substance)</td>
+                                                <td>@Model.ItemInfo.Substance</td>
+                                            </tr>
+                                            <tr>
+                                                <td>@DisplayNameHelper.Get(() => Model.ItemInfo.Cn1)</td>
+                                                <td>@Model.ItemInfo.Cn1</td>
+                                            </tr>
+                                            <tr>
+                                                <td>@DisplayNameHelper.Get(() => Model.ItemInfo.Cn3)</td>
+                                                <td>@Model.ItemInfo.Cn3</td>
+                                            </tr>
+                                        </tbody>
+                                    </MudSimpleTable>
+                                }
+                            </ChildContent>
+                        </MudPopover>
+                    </MudItem>
+                    <MudItem sm="12" Class="d-flex">
+                    <MudText Class="mr-2 pt-3"><b>Set restriction on*</b></MudText>
+                        <MudItem>
+                            <MudSelect Margin="@Margin.Dense" T="SafetyStockRestrictionLevel"
+                                        @ref="@_restrictionLevel"
+                                        @bind-Value="@Model.RestrictionLevel"
+                                        For="@(() => Model.RestrictionLevel)"
+                                        Variant="Variant.Outlined">
+                                <MudSelectItem T="SafetyStockRestrictionLevel" Value="SafetyStockRestrictionLevel.PharmacyChainGroup">
+                                    <MudText Color="Color.Dark">
+                                        Pharmacy group
+                                    </MudText>
+                                </MudSelectItem>
+                                <MudSelectItem T="SafetyStockRestrictionLevel" Value="SafetyStockRestrictionLevel.PharmacyChain">
+                                    <MudText Color="Color.Dark">
+                                        Pharmacy chain
+                                    </MudText>
+                                </MudSelectItem>
+                            </MudSelect>                               
+                        </MudItem>
+                    </MudItem>
+                    <MudItem Class="pt-0" sm="12">
+                        @if(Model.RestrictionLevel == SafetyStockRestrictionLevel.PharmacyChainGroup)
+                        {
+                            foreach (var pharmacyGroup in _pharmacyGroups)
+                            {
+                                <MudCheckBox T="bool"
+                                    Label="@pharmacyGroup.ToString()"
+                                    Color="Color.Primary"
+                                    Size="Size.Small"
+                                    Dense
+                                    Value="@IsCheckedPharmacyGroup(pharmacyGroup)"
+                                    ValueChanged="@((value) => OnPharmacyGroupCheckChanged(value, pharmacyGroup))">
+                                </MudCheckBox>
+                            }
+                        }
+                        else
+                        {
+                            foreach (var pharmacyChain in _pharmacyChains)
+                            {
+                                <MudCheckBox T="bool"
+                                    Label="@pharmacyChain.DisplayName"
+                                    Color="Color.Primary"
+                                    Size="Size.Small"
+                                    Dense
+                                    Value="@IsCheckedPharmacyChain(pharmacyChain)"
+                                    ValueChanged="@((value) => OnPharmacyChainCheckChanged(value, pharmacyChain))">
+                                </MudCheckBox>
+                            }
+                        }
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
+        </MudPaper>
+    </DialogContent>
+        <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
+        <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" Disabled="!_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock)" Variant="Variant.Filled" Color="Color.Primary" Loading="@_isSaving" OnClick="Submit">Save</MudLoadingButton>
+    </DialogActions>
+</MudDialog>

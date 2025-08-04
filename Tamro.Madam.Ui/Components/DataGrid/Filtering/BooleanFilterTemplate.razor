@@ -1,0 +1,15 @@
+﻿<MudIconButton OnClick="@Open" Icon="@FilterOptions.Icon" Size="@Size.Small" />
+<MudOverlay Visible="@FilterOptions.IsOpen" OnClick="@Close"/>
+<MudPopover Open="@FilterOptions.IsOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Style="width: 150px">
+    <MudStack Spacing="0">
+        <MudDivider/>
+        <MudStack Spacing="0" Style="overflow-y: auto; max-height: 250px;">
+            <MudCheckBox T="bool" Label="Yes" Color="Color.Primary" Size="@Size.Small" Value="@FilterOptions.YesChecked" ValueChanged="@((value) => YesCheckChanged(value))"/>
+            <MudCheckBox T="bool" Label="No" Color="Color.Primary" Size="@Size.Small" Value="@FilterOptions.NoChecked" ValueChanged="@((value) => NoCheckChanged(value))" />
+        </MudStack>
+        <MudStack Row="true">
+            <MudButton Color="@Color.Primary" OnClick="@CancelClick">Cancel</MudButton>
+            <MudButton Color="@Color.Primary" OnClick="@ApplyClick">Apply</MudButton>
+        </MudStack>
+    </MudStack>
+</MudPopover>

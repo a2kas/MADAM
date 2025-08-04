@@ -1,0 +1,38 @@
+# This is an example Starter pipeline configuration
+# Use a skeleton to build, test and deploy using manual and parallel steps
+# -----
+# You can specify a custom docker image from Docker Hub as your build environment.
+
+image: atlassian/default-image:3
+
+pipelines:
+  pull-requests:
+    '**':
+      - step:
+          runs-on:
+          #  - docker
+            - self.hosted
+            - linux.shell
+            - rocky
+            - tamrobaltics    
+          name: 'pull-request-build'
+          clone:
+            enabled: false
+          script:
+            - echo "Only for PR"
+            - curl -vs "$WEBHOOK_URL" 2>&1
+  default:
+    - step:
+        runs-on:
+        #  - docker
+            - self.hosted
+            - linux.shell
+            - rocky
+            - tamrobaltics
+        name: 'webhook to local jenkins'
+        clone:
+          enabled: false
+        script:
+          - echo "Default. Runs everytime"
+          - curl -vs "$WEBHOOK_URL" 2>&1
+          

@@ -1,0 +1,93 @@
+﻿@using Tamro.Madam.Models.Navigation.Menu;
+@using static Tamro.Madam.Application.Extensions.EnumExtensions;
+@using Tamro.Madam.Ui.Services.Navigation;
+
+<MudNavMenu>
+    @foreach (var section in Model)
+    {
+        if (section is not null)
+        {
+            <div class="ml-5 @(section == Model.First() ? "mt-0 mb-2" : "mt-6 mb-2")">
+                <MudText Typo="Typo.caption">
+                    <b>@(section.Title)</b>
+                </MudText>
+            </div>
+        }
+
+        if (section.SectionItems is not null)
+        {
+            @foreach (var sectionItem in section.SectionItems)
+            {
+                if (sectionItem.IsParent && sectionItem.MenuItems?.Count > 0)
+                {
+                    <MudNavGroup Icon="@sectionItem.Icon" Title="@sectionItem.Title" Expanded="Expanded(sectionItem)">
+                        @foreach (var childItem in sectionItem.MenuItems)
+                        {
+                            if (childItem.IsParent && childItem.MenuItems?.Count > 0)
+                            {
+                                <MudNavGroup Icon="@childItem.Icon" Title="@childItem.Title" Expanded="Expanded(childItem)">
+                                    @foreach (var subItem in childItem.MenuItems)
+                                    {
+                                        @RenderNavLink(subItem)
+                                    }
+                                </MudNavGroup>
+                            }
+                            else
+                            {
+                                @RenderNavLink(childItem)
+                            }
+                        }
+                    </MudNavGroup>
+                }
+                else
+                {
+                    @RenderNavLink(sectionItem)
+                }
+            }
+        }
+    }
+</MudNavMenu>
+
+@code {
+    RenderFragment RenderNavLink(MenuSectionItemModel item) => @<MudNavLink Disabled="@(item.PageStatus != PageStatus.Completed)"
+                                                                                Href="@(item.Href)"
+                                                                                Icon="@(item.Icon)"
+                                                                                Target="@(item.Target)"
+                                                                                Match="NavLinkMatch.All">
+        <div class="d-flex">
+            @item.Title
+            @if (item.PageStatus != PageStatus.Completed)
+        {
+            <MudSpacer />
+            <MudChip T="string" Class="mr-4" Color="@Color.Primary" Size="Size.Small" Variant="Variant.Text">
+                @item.PageStatus.GetDescription()
+            </MudChip>
+        }
+        </div>
+    </MudNavLink>;
+}
+
+
+<style>
+    .mud-nav-link {
+        white-space: normal !important;
+    }
+
+    .user-button {
+        text-transform: none;
+        background: rgba(var(--mud-palette-primary-rgb), 0.1)
+    }
+
+    .side-menu .mud-chip.mud-chip-size-small {
+        font-size: 0.625rem;
+        height: 1.125rem;
+    }
+
+    .mud-nav-link.active:not(.mud-nav-link-disabled) {
+        border-right: 3px solid var(--mud-palette-primary);
+    }
+
+    .side-menu {
+        border-right: 1px solid var(--mud-palette-table-lines)
+    }
+</style>

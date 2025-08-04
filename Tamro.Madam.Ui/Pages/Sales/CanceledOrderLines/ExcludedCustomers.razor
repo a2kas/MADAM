@@ -1,0 +1,108 @@
+﻿@using Tamro.Madam.Models.Data.Sales.CanceledOrderLines
+@using Tamro.Madam.Models.ItemMasterdata.Items.SafetyStocks;
+@using Tamro.Madam.Models.Sales.CanceledOrderLines
+@using Tamro.Madam.Models.Sales.CanceledOrderLines.ExcludedCustomers
+@using Tamro.Madam.Ui.Components.DataGrid.Filtering;
+@using Tamro.Madam.Models.Data;
+@using Blazor.Flags;
+@using Tamro.Madam.Ui.ComponentExtensions;
+@using Tamro.Madam.Models.General;
+
+@page "/sales/canceled-order-lines/excluded-customers"
+
+<Permission RequiredPermission="@Permissions.CanManageCanceledOrderLineNotificationReceivers" />
+<PageTitle>Customers excluded from receiving notifications</PageTitle>
+
+<MudPaper>
+    <MudGrid Class="d-flex">
+        <MudItem sm="12" md="6" xs="12" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.PlaylistRemove" Color="Color.Tertiary" Size="Size.Large" />
+            <MudText Class="gap-4 ma-1" Typo="Typo.h6">Customers excluded from receiving notifications</MudText>
+        </MudItem>
+        <MudItem sm="12" md="6" xs="12" Class="d-flex align-items-end justify-end button-bar">
+            <MudButton Variant="Variant.Outlined"
+                       OnClick="OnReset"
+                       Size="Size.Small"
+                       Disabled="@_loading"
+                       StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Primary"
+                       Style="margin-right: 4px; margin-bottom:4px">
+                Reset
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Size="Size.Small"
+                       OnClick="OnCreate"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       IconColor="Color.Surface">
+                New
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                       StartIcon="@Icons.Material.Filled.Delete"
+                       Disabled="@(_selectedExcludedCustomers.Count < 1)"
+                       Size="Size.Small"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       OnClick="OnDeleteChecked"
+                       IconColor="Color.Surface">
+                Delete
+            </MudButton>
+             <MudLoadingButton @bind-Loading="_loading" Variant="Variant.Outlined" Color="Color.Primary"
+                              Label="Export"
+                              Disabled="@_loading"
+                              StartIcon="@Icons.Custom.FileFormats.FileExcel"
+                              Size="Size.Small"
+                              Style="margin-right: 4px; margin-bottom:4px"
+                              OnClick="OnExport"
+                              IconColor="Color.Surface">
+                Export
+            </MudLoadingButton>
+        </MudItem>
+    </MudGrid>
+    <MudDataGrid T="ExcludedCustomerGridModel" ServerData="@(DataSource)"
+                 Virtualize="true"
+                 @bind-RowsPerPage="_defaultPageSize"
+                 Loading="@_loading"
+                 Striped="true"
+                 Bordered="true"
+                 Dense="true"
+                 ColumnResizeMode="ResizeMode.Column"
+                 DragDropColumnReordering="true"
+                 ApplyDropClassesOnDragStarted="true"
+                 FilterMode="@DataGridFilterMode.ColumnFilterRow"
+                 Filterable="true"
+                 MultiSelection="true"
+                 @bind-SelectedItems="_selectedExcludedCustomers"
+                 Hideable="true"
+                 Hover="true"
+                 @ref="_table">
+        <Columns>
+            <SelectColumn Size="Size.Small" T="ExcludedCustomerGridModel" ShowInFooter="false"></SelectColumn>
+            <TemplateColumn CellStyle="width: 50px" Title="Actions" Filterable="false" Sortable="false">
+                <CellTemplate>
+                    <MudGrid Class="action-bar">
+                        <MudItem>
+                            <MudTooltip Text="Delete" Placement="Placement.Top">
+                                <MudIconButton DisableElevation
+                                                Icon="@Icons.Material.Filled.Delete"
+                                                Size="Size.Small"
+                                                Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)"
+                                                OnClick="@(() => OnDeleteSingle(context.Item))">
+                                </MudIconButton>
+                            </MudTooltip> 
+                        </MudItem>
+                    </MudGrid>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.E1SoldTo" CellStyle="width: 250px" Title="@DisplayNameHelper.Get(typeof(ExcludedCustomerGridModel), nameof(ExcludedCustomerGridModel.E1SoldTo))" />
+            <PropertyColumn Property="x => x.Name" Filterable="false" Sortable="false" Title="@DisplayNameHelper.Get(typeof(ExcludedCustomerGridModel), nameof(ExcludedCustomerGridModel.Name))" />
+        </Columns>
+        <NoRecordsContent>
+            <MudText>No data to display</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>

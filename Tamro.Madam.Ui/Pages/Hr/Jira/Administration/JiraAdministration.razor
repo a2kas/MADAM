@@ -1,0 +1,123 @@
+﻿@page "/hr/jira-administration"
+@using Blazor.Flags
+@using Tamro.Madam.Application.Queries.Hr.Jira.Administration.Grid
+@using Tamro.Madam.Models.Data
+@using Tamro.Madam.Models.General
+@using Tamro.Madam.Models.Hr.Jira.Administration
+@using Tamro.Madam.Ui.ComponentExtensions
+@using Tamro.Madam.Ui.Components.DataGrid.Filtering
+@using Tamro.Madam.Ui.Components.DataGrid.Selecting
+
+
+<Permission RequiredPermission="@Permissions.CanViewJira" />
+<PageTitle>Jira administration</PageTitle>
+
+<MudPaper>
+    <MudGrid Class="d-flex">
+        <MudItem sm="2" xs="12" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.Face5" Color="Color.Tertiary" Size="Size.Large" />
+            <MudText Class="gap-4 ma-1" Typo="Typo.h6">Jira administration</MudText>
+        </MudItem>
+        <MudItem sm="10" xs="12" Class="d-flex align-items-end justify-end button-bar">
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+            StartIcon="@Icons.Material.Filled.ToggleOn"
+            Disabled="@(!(_selectedJiraAccounts.Count > 0 && !_selectedJiraAccounts.Any(x => x.IsActive)) || !_userSettings.HasPermission(Permissions.CanManageJira))"
+            Size="Size.Small"
+            Style="margin-right: 4px; margin-bottom:4px"
+            OnClick="@(() => OnSetIsActivated(true))"
+            IconColor="Color.Surface">
+                Activate
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Error"
+            StartIcon="@Icons.Material.Filled.ToggleOff"
+            Disabled="@(!(_selectedJiraAccounts.Count > 0 && !_selectedJiraAccounts.Any(x => !x.IsActive)) || !_userSettings.HasPermission(Permissions.CanManageJira))"
+            Size="Size.Small"
+            Style="margin-right: 4px; margin-bottom:4px"
+            OnClick="@(() => OnSetIsActivated(false))"
+            IconColor="Color.Surface">
+                Deactivate
+            </MudButton>
+            <MudButton Variant="Variant.Outlined"
+            OnClick="OnReset"
+            Size="Size.Small"
+            Disabled="@_loading"
+            StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Primary"
+            Style="margin-right: 4px; margin-bottom:4px">
+                Reset
+            </MudButton>
+        </MudItem>
+        <MudItem xs="12">
+
+        </MudItem>
+    </MudGrid>
+    <MudDataGrid T="JiraAccountModel" ServerData="@(DataSource)"
+        Virtualize="true"
+        @bind-RowsPerPage="_defaultPageSize"
+        Loading="@_loading"
+        Striped="true"
+        Bordered="true"
+        Dense="true"
+        ColumnResizeMode="ResizeMode.Column"
+        DragDropColumnReordering="true"
+        ApplyDropClassesOnDragStarted="true"
+        FilterMode="@DataGridFilterMode.ColumnFilterRow"
+        Filterable="true"
+        MultiSelection="true"
+        @bind-SelectedItems="_selectedJiraAccounts"
+        Hideable="true"
+        Hover="true"
+        EditMode="@DataGridEditMode.Cell"
+        ReadOnly="false"
+        @ref="_table">
+        <Columns>
+            <SelectColumn Size="Size.Small" T="JiraAccountModel" ShowInFooter="false"></SelectColumn>
+            <PropertyColumn Editable="false"  Property="x => x.DisplayName" CellStyle="width: 600px" Title="@DisplayNameHelper.Get(typeof(JiraAccountModel), nameof(JiraAccountModel.DisplayName))"></PropertyColumn>
+            <PropertyColumn Editable="@_userSettings.HasPermission(Permissions.CanManageJira)" Required="false" Property="x => x.Team" Title="@DisplayNameHelper.Get(typeof(JiraAccountModel), nameof(JiraAccountModel.Team))">
+                <FilterTemplate>
+                    <AutoDictionaryFilterTemplate DataT="JiraAccountModel" QueryT="JiraAccountsGridQuery"
+                        AffectedGrid="@_table"
+                        AffectedQuery="@_query"
+                        FilteredFieldName="Team"
+                        SelectableOptions="@GenericData.TeamDisplayName"
+                        QueryProperty="q=>q.Teams"
+                        FilterOptions="@_teamsFilterOptions">
+                    </AutoDictionaryFilterTemplate>
+                </FilterTemplate>
+                <EditTemplate>
+                    <AutoDictionarySelectTemplate
+                        Value="@context.Item.Team.ToString()"
+                        SelectableOptions="GenericData.TeamDisplayName"
+                        ValueChanged="async val => await OnTeamChanged(context.Item, val)">
+                    </AutoDictionarySelectTemplate>
+                </EditTemplate>
+            </PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.IsActive" Title="@DisplayNameHelper.Get(typeof(JiraAccountModel), nameof(JiraAccountModel.IsActive))">
+                <FilterTemplate>
+                    <AutoDictionaryFilterTemplate DataT="JiraAccountModel" QueryT="JiraAccountsGridQuery"
+                        AffectedGrid="@_table"
+                        AffectedQuery="@_query"
+                        FilteredFieldName="Active"
+                        SelectableOptions="@GenericData.BooleanDisplayNames"
+                        QueryProperty="q=>q.IsActiveFilter"
+                        FilterOptions="@_isActiveFilterOptions"> 
+                    </AutoDictionaryFilterTemplate>
+                </FilterTemplate>
+                <CellTemplate>
+                    @if (context.Item.IsActive)
+                    {
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Primary" Size="Size.Medium" />
+                    }
+                </CellTemplate>
+            </PropertyColumn>
+        </Columns>
+        <NoRecordsContent>
+            <MudText>No data to display</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100 })" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>

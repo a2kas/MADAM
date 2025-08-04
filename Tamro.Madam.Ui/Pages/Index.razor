@@ -1,0 +1,42 @@
+﻿@page "/"
+@using Blazor.Flags
+@using Tamro.Madam.Ui.ComponentExtensions
+@using Tamro.Madam.Ui.Components.Overview.Cards;
+@using Tamro.Madam.Ui.Components.Menu;
+@using Tamro.Madam.Ui.Store.State;
+@attribute [Authorize]
+@inject AuthenticationStateProvider AuthState
+@inject IState<UserProfileState> UserProfileState
+
+<PageTitle>Overview</PageTitle>
+
+@if (UserProfileState.Value.HasPermission(Permissions.CanViewCoreMasterdata))
+{
+    <MudGrid>
+        <MudItem xs="12" md="7">
+            <MudItem Class="mb-5 mt-8" style="display: flex;">
+                <MudItem Class="mr-5" xs="12" md="4">
+                    <BalticItemsCard />
+                </MudItem>
+                <MudItem xs="12" md="8">
+                    <LocalItemsCard />
+                </MudItem>
+            </MudItem>
+            <MudItem md="12">
+                <AttentionNeededCard />
+            </MudItem>
+        </MudItem>
+        <MudItem xs="12" md="5" Class="mt-8">
+            <MudItem md="12">
+                <ItemEditsPerMonthCard />
+            </MudItem>
+            <MudItem Class="mt-5" md="12">
+                <TotalChangesDoneCard />
+            </MudItem>
+        </MudItem>
+    </MudGrid>
+}
+else
+{
+    <TilesNavigation />
+}

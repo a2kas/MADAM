@@ -1,0 +1,12 @@
+﻿@using Tamro.Madam.Ui.Components.DataGrid.Filtering;
+@using Tamro.Madam.Models.Data;
+@using Blazor.Flags;
+@using Tamro.Madam.Ui.ComponentExtensions;
+@using Tamro.Madam.Models.General;
+
+<MudSelect T="string" Value="@Value" ValueChanged="async val => await OnValueChanged(val)">
+    @foreach (var option in SelectableOptions)
+    {
+        <MudSelectItem T="string" Value="@option.Value">@option.Key</MudSelectItem>
+    }
+</MudSelect>

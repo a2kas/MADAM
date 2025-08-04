@@ -1,0 +1,63 @@
+﻿@using Tamro.Madam.Models.Data.Sales.CanceledOrderLines
+@using Tamro.Madam.Models.Sales.CanceledOrderLines.Statistics
+@using MudBlazor
+
+<MudDataGrid Virtualize="true"
+             T="CanceledLinesItemStatisticsGridModel"
+             Items="@Items"
+             @bind-RowsPerPage="RowsPerPage"
+             Loading="@Loading"
+             Striped="true"
+             Bordered="true"
+             Dense="true"
+             ColumnResizeMode="ResizeMode.Column"
+             DragDropColumnReordering="true"
+             ApplyDropClassesOnDragStarted="true"
+             FilterMode="@DataGridFilterMode.ColumnFilterRow"
+             Filterable="true"
+             MultiSelection="true"
+             Hideable="true"
+             Hover="true">
+    <Columns>
+        <HierarchyColumn T="CanceledLinesItemStatisticsGridModel"></HierarchyColumn>
+        <PropertyColumn Property="x => x.ItemNo" Title="@DisplayNameHelper.Get(typeof(CanceledLinesItemStatisticsGridModel), nameof(CanceledLinesItemStatisticsGridModel.ItemNo))" />
+        <PropertyColumn Property="x => x.ItemName" Title="@DisplayNameHelper.Get(typeof(CanceledLinesItemStatisticsGridModel), nameof(CanceledLinesItemStatisticsGridModel.ItemName))" />
+        <PropertyColumn Property="x => x.CanceledQuantity" InitialDirection="SortDirection.Descending" Title="@DisplayNameHelper.Get(typeof(CanceledLinesItemStatisticsGridModel), nameof(CanceledLinesItemStatisticsGridModel.CanceledQuantity))" />
+    </Columns>
+    <ChildRowContent>
+        <MudDataGrid Striped="true"
+                     Bordered="true"
+                     T="CanceledLinesCustomerGridModel"
+                     ColumnResizeMode="ResizeMode.Column"
+                     DragDropColumnReordering="true"
+                     ApplyDropClassesOnDragStarted="true"
+                     FilterMode="@DataGridFilterMode.ColumnFilterRow"
+                     @bind-RowsPerPage="RowsPerPage"
+                     Filterable="true"
+                     Dense="true" Items="@context.Item.Customers">
+            <Columns>
+                <PropertyColumn Property="x => x.E1ShipTo" Title="@DisplayNameHelper.Get(typeof(CanceledLinesCustomerGridModel), nameof(CanceledLinesCustomerGridModel.E1ShipTo))" />
+                <PropertyColumn Property="x => x.CustomerName" Title="@DisplayNameHelper.Get(typeof(CanceledLinesCustomerGridModel), nameof(CanceledLinesCustomerGridModel.CustomerName))" />
+                <PropertyColumn Property="x => x.CanceledQuantity" InitialDirection="SortDirection.Descending" Title="@DisplayNameHelper.Get(typeof(CanceledLinesCustomerGridModel), nameof(CanceledLinesCustomerGridModel.CanceledQuantity))" />
+                <PropertyColumn Property="x => x.CancelationReason" InitialDirection="SortDirection.Descending" Title="@DisplayNameHelper.Get(typeof(CanceledLinesCustomerGridModel), nameof(CanceledLinesCustomerGridModel.CancelationReason))" >
+                    <CellTemplate Context="cellContext">
+                        @CanceledOrderHeaderData.CancellationReasons[cellContext.Item.CancelationReason.ToString()]
+                    </CellTemplate>
+                </PropertyColumn>
+
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+            </PagerContent>
+        </MudDataGrid>
+    </ChildRowContent>
+    <NoRecordsContent>
+        <MudText>No data to display</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Loading</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+    </PagerContent>
+</MudDataGrid>

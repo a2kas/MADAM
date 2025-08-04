@@ -1,0 +1,35 @@
+﻿@page "/dev/samples/elk"
+
+<Permission RequiredPermission="@Permissions.CanAccessDevelopersCorner" />
+<PageTitle>Elk</PageTitle>
+
+<MudPaper>
+    <MudButton Variant="Variant.Outlined" Color="Color.Error"
+               StartIcon="@Icons.Material.Filled.Error"
+               Size="Size.Medium"
+               OnClick="OnLogHandledError"
+               IconColor="Color.Surface">
+        Log handled error
+    </MudButton>
+    <MudButton Variant="Variant.Outlined" Color="Color.Error"
+               StartIcon="@Icons.Material.Filled.Error"
+               Size="Size.Medium"
+               OnClick="OnLogUnhandledError"
+               IconColor="Color.Surface">
+        Log unhandled error
+    </MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Warning"
+           StartIcon="@Icons.Material.Filled.Warning"
+               Size="Size.Medium"
+               OnClick="OnLogWarning"
+               IconColor="Color.Surface">
+        Log warning
+    </MudButton>
+    <MudButton Variant="Variant.Outlined" Color="Color.Info"
+               StartIcon="@Icons.Material.Filled.Info"
+               Size="Size.Medium"
+               OnClick="OnLogInfo"
+               IconColor="Color.Surface">
+        Log info
+    </MudButton>
+</MudPaper>

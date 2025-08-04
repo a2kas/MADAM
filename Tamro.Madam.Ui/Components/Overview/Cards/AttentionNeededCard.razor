@@ -1,0 +1,12 @@
+﻿<MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4">Attention Needed</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+    </MudCardContent>
+    <MudCardActions>
+        <MudButton Variant="Variant.Filled" Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanViewCoreMasterdata))" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward">View</MudButton>
+    </MudCardActions>
+</MudCard>

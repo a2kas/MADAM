@@ -1,0 +1,62 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace Tamro.Madam.Repository.Migrations
+{
+    /// <inheritdoc />
+    public partial class ItemQualityCheckAdjustmentsv2 : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AlterColumn<string>(
+                name: "Description",
+                table: "ItemQualityCheckIssue",
+                type: "nvarchar(4000)",
+                maxLength: 4000,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "nvarchar(4000)",
+                oldMaxLength: 4000);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ActualValue",
+                table: "ItemQualityCheckIssue",
+                type: "nvarchar(4000)",
+                maxLength: 4000,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "nvarchar(4000)",
+                oldMaxLength: 4000);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AlterColumn<string>(
+                name: "Description",
+                table: "ItemQualityCheckIssue",
+                type: "nvarchar(4000)",
+                maxLength: 4000,
+                nullable: false,
+                defaultValue: "",
+                oldClrType: typeof(string),
+                oldType: "nvarchar(4000)",
+                oldMaxLength: 4000,
+                oldNullable: true);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ActualValue",
+                table: "ItemQualityCheckIssue",
+                type: "nvarchar(4000)",
+                maxLength: 4000,
+                nullable: false,
+                defaultValue: "",
+                oldClrType: typeof(string),
+                oldType: "nvarchar(4000)",
+                oldMaxLength: 4000,
+                oldNullable: true);
+        }
+    }
+}

@@ -1,0 +1,85 @@
+﻿@page "/tools/retail-code-generator"
+@using Blazor.Flags
+@using Tamro.Madam.Models.General
+@using Tamro.Madam.Models.ItemMasterdata.Items.Bindings.Retail
+@using Tamro.Madam.Ui.ComponentExtensions
+
+<Permission RequiredPermission="@Permissions.CanEditCoreMasterdata" />
+<PageTitle>Retail code generator</PageTitle>
+
+<MudPaper>
+    <MudGrid Class="d-flex">
+        <MudItem sm="2" xs="12" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.AutoMode" Color="Color.Tertiary" Size="Size.Large" />
+            <MudText Class="gap-4 ma-1" Typo="Typo.h6">Retail code generator</MudText>
+        </MudItem>
+
+        <MudItem sm="10" xs="12" Class="d-flex align-items-end justify-end button-bar">
+            <MudButton Variant="Variant.Outlined"
+                        OnClick="OnReset"
+                        Size="Size.Small"
+                        Disabled="@_loading"
+                        StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Primary"
+                        Style="margin-right: 4px; margin-bottom:4px">
+                 Reset
+             </MudButton>
+             <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                        StartIcon="@Icons.Material.Filled.Add"
+                        Size="Size.Small"
+                        Disabled="@(_loading || !_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))"
+                        OnClick="OnGenerate"
+                        Style="margin-right: 4px; margin-bottom:4px"
+                        IconColor="Color.Surface">
+                 Generate
+             </MudButton>
+         </MudItem>
+         <MudItem xs="12">
+             <MudTextField T="string" Immediate="true" OnKeyDown="OnBasicSearchKeyDown" @bind-Value="@_query.SearchTerm" Placeholder="Search" Adornment="Adornment.End"
+                           AdornmentIcon="@Icons.Material.Filled.Search" Margin="Margin.Dense" IconSize="Size.Small" Size="Size.Small" Variant="Variant.Outlined">
+             </MudTextField>
+         </MudItem>
+     </MudGrid>
+     <MudDataGrid T="GeneratedRetailCodeModel" ServerData="@(DataSource)"
+                  Virtualize="true"
+                  @bind-RowsPerPage="_defaultPageSize"
+                  Loading="@_loading"
+                  Striped="true"
+                  Bordered="true"
+                  Dense="true"
+                  ColumnResizeMode="ResizeMode.Column"
+                  DragDropColumnReordering="true"
+                  ApplyDropClassesOnDragStarted="true"
+                  FilterMode="@DataGridFilterMode.ColumnFilterRow"
+                  SortLabel="Order by"
+                  Filterable="true"
+                  Hideable="true"
+                  Hover="true"
+                  @ref="_table">
+         <Columns>
+             <TemplateColumn Title="@DisplayNameHelper.Get(typeof(GeneratedRetailCodeModel), nameof(GeneratedRetailCodeModel.Country))" Filterable="false" Sortable="false">
+                 <CellTemplate>
+                     <MudStack Row>
+                        @{
+                            var flagCountry = BlazorFlagExtensions.GetBlazorFlagCountry<BalticCountry>(context.Item.Country);
+                            <CountryFlag Country="@flagCountry" Size="FlagSize.Normal" />
+                            <MudText Class="pt-2">@context.Item.Country.ToString()</MudText>
+                        }
+                    </MudStack>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.CodePrefix" Title="@DisplayNameHelper.Get(typeof(GeneratedRetailCodeModel), nameof(GeneratedRetailCodeModel.CodePrefix))" Filterable="false" Sortable="false"></PropertyColumn>
+            <PropertyColumn Property="x => x.Code" Title="@DisplayNameHelper.Get(typeof(GeneratedRetailCodeModel), nameof(GeneratedRetailCodeModel.Code))"></PropertyColumn>
+            <PropertyColumn Property="x => x.FullCode" Title="@DisplayNameHelper.Get(typeof(GeneratedRetailCodeModel), nameof(GeneratedRetailCodeModel.FullCode))"></PropertyColumn>
+            <PropertyColumn Property="x => x.GeneratedBy" Title="@DisplayNameHelper.Get(typeof(GeneratedRetailCodeModel), nameof(GeneratedRetailCodeModel.GeneratedBy))"></PropertyColumn>
+        </Columns>
+        <NoRecordsContent>
+            <MudText>No data to display</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>

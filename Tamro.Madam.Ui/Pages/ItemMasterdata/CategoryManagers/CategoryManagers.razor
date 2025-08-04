@@ -1,0 +1,189 @@
+﻿@page "/items/category-managers"
+@using Blazor.Flags
+@using Tamro.Madam.Models.Data
+@using Tamro.Madam.Models.General
+@using Tamro.Madam.Models.ItemMasterdata.CategoryManagers
+@using Tamro.Madam.Ui.ComponentExtensions
+@using Tamro.Madam.Ui.Components.DataGrid.Filtering
+
+
+<Permission RequiredPermission="@Permissions.CanViewCoreMasterdata" />
+<PageTitle>Category managers</PageTitle>
+
+<MudPaper>
+    <MudGrid Class="d-flex">
+        <MudItem sm="2" xs="12" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.People" Color="Color.Tertiary" Size="Size.Large" />
+            <MudText Class="gap-4 ma-1" Typo="Typo.h6">Category managers</MudText>
+        </MudItem>
+
+        <MudItem sm="10" xs="12" Class="d-flex align-items-end justify-end button-bar">
+            <MudButton Variant="Variant.Outlined"
+                       OnClick="OnReset"
+                       Size="Size.Small"
+                       Disabled="@_loading"
+                       StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Primary"
+                       Style="margin-right: 4px; margin-bottom:4px">
+                Reset
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Size="Size.Small"
+                       Disabled="@(_loading || !_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))"
+                       OnClick="OnCreate"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       IconColor="Color.Surface">
+                New
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.OpenInNew"
+                       Size="Size.Small"
+                       Disabled="@(_selectedCategoryManagers.Count != 1)"
+                       OnClick="OnOpen"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       IconColor="Color.Surface">
+                Open
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.ContentCopy"
+                       Size="Size.Small"
+                       Disabled="@(_selectedCategoryManagers.Count != 1 || !_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))"
+                       OnClick="OnCopy"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       IconColor="Color.Surface">
+                Copy
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                       StartIcon="@Icons.Material.Filled.Delete"
+                       Disabled="@(!(_selectedCategoryManagers.Count > 0) || !_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))"
+                       Size="Size.Small"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       OnClick="OnDeleteChecked"
+                       IconColor="Color.Surface">
+                Delete
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.History"
+                       Disabled="@(true)"
+                       Size="Size.Small"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       OnClick="OnHistoryView"
+                       IconColor="Color.Surface">
+                History (todo)
+            </MudButton>
+            <MudLoadingButton @bind-Loading="_loading" Variant="Variant.Outlined" Color="Color.Primary"
+                              Label="Export"
+                              Disabled="@_loading"
+                              StartIcon="@Icons.Custom.FileFormats.FileExcel"
+                              Size="Size.Small"
+                              Style="margin-right: 4px; margin-bottom:4px"
+                              OnClick="OnExport"
+                              IconColor="Color.Surface">
+                Export
+            </MudLoadingButton>
+        </MudItem>
+        <MudItem xs="12">
+            <MudTextField T="string" Immediate="true" OnKeyDown="OnBasicSearchKeyDown" @bind-Value="@_query.SearchTerm" Placeholder="Search" Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Material.Filled.Search" Margin="Margin.Dense" IconSize="Size.Small" Size="Size.Small" Variant="Variant.Outlined">
+            </MudTextField>
+        </MudItem>
+    </MudGrid>
+    <MudDataGrid T="CategoryManagerModel" ServerData="@(DataSource)"
+                 Virtualize="true"
+                 @bind-RowsPerPage="_defaultPageSize"
+                 Loading="@_loading"
+                 Striped="true"
+                 Bordered="true"
+                 Dense="true"
+                 ColumnResizeMode="ResizeMode.Column"
+                 DragDropColumnReordering="true"
+                 ApplyDropClassesOnDragStarted="true"
+                 FilterMode="@DataGridFilterMode.ColumnFilterRow"
+                 SortLabel="Order by"
+                 Filterable="true"
+                 MultiSelection="true"
+                 @bind-SelectedItems="_selectedCategoryManagers"
+                 Hideable="true"
+                 Hover="true"
+                 @ref="_table">
+        <Columns>
+            <SelectColumn Size="Size.Small" T="CategoryManagerModel" ShowInFooter="false"></SelectColumn>
+            <TemplateColumn CellStyle="width: 50px" Title="Actions" Filterable="false" Sortable="false">
+                <CellTemplate>
+                    <MudGrid Class="action-bar">
+                        <MudItem>
+                            <MudTooltip Text="Open" Placement="Placement.Top">
+                                <MudIconButton DisableElevation
+                                               Icon="@Icons.Material.Filled.OpenInNew"
+                                               Size="Size.Small"
+                                               OnClick="@(() => OnOpen(context.Item))"
+                                               Color="Color.Primary">
+                                </MudIconButton>
+                            </MudTooltip>
+                        </MudItem>
+                        <MudItem>
+                            <MudTooltip Text="Copy" Placement="Placement.Top">
+                                <MudIconButton DisableElevation
+                                               Icon="@Icons.Material.Filled.ContentCopy"
+                                               Size="Size.Small"
+                                               OnClick="@(() => OnCopy(context.Item))"
+                                               Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)">
+                                </MudIconButton>
+                            </MudTooltip>
+                        </MudItem>
+                        <MudItem>
+                            <MudTooltip Text="Delete" Placement="Placement.Top">
+                                <MudIconButton DisableElevation
+                                               Icon="@Icons.Material.Filled.Delete"
+                                               Size="Size.Small"
+                                               OnClick="@(() => OnDeleteSingle(context.Item))"
+                                               Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)">
+                                </MudIconButton>
+                            </MudTooltip>
+                        </MudItem>
+                        <MudItem>
+                            <MudTooltip Text="More" Placement="Placement.Top">
+                                <MudMenu Class="more-horiz-icon" icon="@Icons.Material.Outlined.MoreHoriz" Variant="Variant.Text" DisableElevation="true" Size="Size.Small" Dense="true" AnchorOrigin="Origin.CenterLeft">
+                                    <MudMenuItem OnClick="@(() => OnHistoryView(context.Item))">History</MudMenuItem>
+                                </MudMenu>
+                            </MudTooltip>
+                        </MudItem>
+                    </MudGrid>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.EmailAddress" Title="@DisplayNameHelper.Get(typeof(CategoryManagerModel), nameof(CategoryManagerModel.EmailAddress))"></PropertyColumn>
+            <PropertyColumn Property="x => x.FirstName" Title="@DisplayNameHelper.Get(typeof(CategoryManagerModel), nameof(CategoryManagerModel.FirstName))"></PropertyColumn>
+            <PropertyColumn Property="x => x.LastName" Title="@DisplayNameHelper.Get(typeof(CategoryManagerModel), nameof(CategoryManagerModel.LastName))"></PropertyColumn>
+            <PropertyColumn Property="x => x.Country" Title="@DisplayNameHelper.Get(typeof(CategoryManagerModel), nameof(CategoryManagerModel.Country))">
+                <FilterTemplate>
+                    <AutoDictionaryFilterTemplate DataT="CategoryManagerModel" QueryT="Tamro.Madam.Application.Queries.CategoryManagers.Grid.CategoryManagersGridQuery"
+                        AffectedGrid="@_table"
+                        AffectedQuery="@_query"
+                        FilteredFieldName="Country"
+                        SelectableOptions="@GenericData.CountryDisplayNames"
+                        QueryProperty="q=>q.Countries"
+                        FilterOptions="@_countriesFilterOptions">
+                    </AutoDictionaryFilterTemplate>
+                </FilterTemplate>
+                <CellTemplate>
+                    @{
+                        var flagCountry = BlazorFlagExtensions.GetBlazorFlagCountry<BalticCountry>(context.Item.Country);
+                    }
+                    <div style="display: flex; align-items: center;">
+                        <CountryFlag Country="@flagCountry" Size="FlagSize.Normal" Class="CountryFlag" />
+                        <MudText Class="pl-2">@context.Item.Country.ToString()</MudText>
+                    </div>
+                </CellTemplate>
+            </PropertyColumn>
+        </Columns>
+        <NoRecordsContent>
+            <MudText>No data to display</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100 })" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>

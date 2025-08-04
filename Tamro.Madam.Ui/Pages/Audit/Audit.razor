@@ -1,0 +1,114 @@
+﻿@page "/audit"
+@using Tamro.Madam.Models.Audit;
+@using Tamro.Madam.Models.Data;
+@using Tamro.Madam.Ui.Components.DataGrid.Filtering;
+
+<Permission RequiredPermission="@Permissions.CanViewAudit" />
+<PageTitle>Audit</PageTitle>
+
+<MudPaper>
+    <MudGrid Class="d-flex">
+        <MudItem sm="2" xs="12" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.TrackChanges" Color="Color.Tertiary" Size="Size.Large" />
+            <MudText Class="gap-4 ma-1" Typo="Typo.h6">Audit</MudText>
+        </MudItem>
+
+        <MudItem sm="10" xs="12" Class="d-flex align-items-end justify-end">
+            <MudButton Variant="Variant.Outlined"
+                       OnClick="OnReset"
+                       Size="Size.Small"
+                       Disabled="@_loading"
+                       StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Primary"
+                       Style="margin-right: 4px; margin-bottom:4px">
+                Reset
+            </MudButton>
+        </MudItem>
+        <MudItem xs="12">
+            <MudTextField T="string" Immediate="true" OnKeyDown="OnBasicSearchKeyDown" @bind-Value="@_query.SearchTerm" Placeholder="Search" Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Material.Filled.Search" Margin="Margin.Dense" IconSize="Size.Small" Size="Size.Small" Variant="Variant.Outlined">
+            </MudTextField>
+        </MudItem>
+    </MudGrid>
+    <MudDataGrid T="AuditGridModel" ServerData="@(DataSource)"
+                 Virtualize="true"
+                 @bind-RowsPerPage="_defaultPageSize"
+                 Loading="@_loading"
+                 Striped="true"
+                 Bordered="true"
+                 Dense="true"
+                 ColumnResizeMode="ResizeMode.Column"
+                 DragDropColumnReordering="true"
+                 ApplyDropClassesOnDragStarted="true"
+                 SortLabel="Order by"
+                 Filterable="true"
+                 FilterMode="@DataGridFilterMode.ColumnFilterRow"
+                 Hideable="true"
+                 Hover="true"
+                 @ref="_table">
+        <Columns>
+            <TemplateColumn CellStyle="width: 50px" Title="Actions" Filterable="false" Sortable="false">
+                <CellTemplate>
+                    <MudGrid Class="action-bar">
+                        <MudItem>
+                            <MudTooltip Text="Open" Placement="Placement.Top">
+                                <MudIconButton DisableElevation
+                                               Icon="@Icons.Material.Filled.OpenInNew"
+                                               Size="Size.Small"
+                                               OnClick="@(() => OnOpen(context.Item))"
+                                               Color="Color.Primary">
+                                </MudIconButton>
+                            </MudTooltip>
+                        </MudItem>
+                    </MudGrid>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.EntityId" Title="@DisplayNameHelper.Get(typeof(AuditGridModel), nameof(AuditGridModel.EntityId))"></PropertyColumn>
+            <PropertyColumn Property="x => x.EntityTypeName" Title="@DisplayNameHelper.Get(typeof(AuditGridModel), nameof(AuditGridModel.EntityTypeName))">
+                <CellTemplate>
+                    @{
+                        AuditData.AuditEntryDisplayNames.TryGetValue(context.Item.EntityTypeName, out var displayName);
+                        var displayText = displayName ?? context.Item.EntityTypeName;
+                    }
+                    @displayText
+                </CellTemplate>
+                <FilterTemplate>
+                    <DictionaryFilterTemplate FilterOptions="@_entityTypeFilterOptions" Options="@AuditData.AuditEntryDisplayNames" ApplyClick="@ApplyEntityTypeFilter" CancelClick="@ClearEntityTypeFilter"></DictionaryFilterTemplate>
+                </FilterTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.StateName" Title="@DisplayNameHelper.Get(typeof(AuditGridModel), nameof(AuditGridModel.StateName))">
+                <CellTemplate>
+                    @{
+                        AuditData.AuditStateDisplayNames.TryGetValue(context.Item.StateName, out var displayName);
+                        var displayText = displayName ?? context.Item.StateName;
+                    }
+                    @displayText
+                </CellTemplate>
+                <FilterTemplate>
+                    <DictionaryFilterTemplate FilterOptions="@_stateNameFilterOptions" Options="@AuditData.AuditStateDisplayNames" ApplyClick="@ApplyStateNameFilter" CancelClick="@ClearStateNameFilter"></DictionaryFilterTemplate>
+                </FilterTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.CreatedBy" Title="@DisplayNameHelper.Get(typeof(AuditGridModel), nameof(AuditGridModel.CreatedBy))">
+                <CellTemplate>
+                    <MudAvatar Color="Color.Primary" Size="Size.Small">
+                        @UserInfoUtils.GetInitials(context.Item.CreatedBy)
+                    </MudAvatar>
+                    @context.Item.CreatedBy
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="x => x.CreatedDate" Title="@DisplayNameHelper.Get(typeof(AuditGridModel), nameof(AuditGridModel.CreatedDate))">
+                <CellTemplate>
+                    @context.Item.CreatedDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+                </CellTemplate>
+            </PropertyColumn>
+        </Columns>
+        <NoRecordsContent>
+            <MudText>No data to display</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>

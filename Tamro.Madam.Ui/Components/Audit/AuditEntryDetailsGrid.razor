@@ -1,0 +1,30 @@
+﻿@using Tamro.Madam.Models.Audit
+@using Tamro.Madam.Models.Data
+
+<MudDataGrid Striped="true"
+             Bordered="true"
+             T="AuditPropertyModel"
+             ColumnResizeMode="ResizeMode.Column"
+             DragDropColumnReordering="true"
+             ApplyDropClassesOnDragStarted="true"
+             FilterMode="@DataGridFilterMode.ColumnFilterRow"
+             Filterable="@Filterable.GetValueOrDefault(true)"
+             Dense="true" Items="@Items">
+    <Columns>
+        <PropertyColumn Property="x => x.PropertyName" CellStyle="font-weight: bold;" Title="Field" />
+        @if (StateName == AuditEntryState.EntityModified.ToString())
+        {
+            <PropertyColumn Property="x => x.OldValue" CellStyle="background-color: var(--mud-palette-error-hover);" Title="Old value" />
+            <PropertyColumn Property="x => x.NewValue" CellStyle="background-color: var(--mud-palette-success-hover);" Title="New value" />
+        }
+        else if (StateName == AuditEntryState.EntityAdded.ToString())
+        {
+            <PropertyColumn Property="x => x.NewValue" CellStyle="background-color: var(--mud-palette-success-hover);" Title="Value" />
+        }
+        else if (StateName == AuditEntryState.EntityDeleted.ToString())
+        {
+            <PropertyColumn Property="x => x.OldValue" CellStyle="background-color: var(--mud-palette-error-hover);" Title="Deleted value" />
+        }
+    </Columns>
+</MudDataGrid>
+

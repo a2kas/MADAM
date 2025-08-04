@@ -1,0 +1,128 @@
+﻿@using Tamro.Madam.Models.Audit
+@using Tamro.Madam.Models.Data
+
+<MudDialog lg="10" xl="8">
+    <DialogContent>
+        <MudGrid Justify="Justify.Center" Spacing="3">
+            <MudItem xs="12" lg="4">
+                <MudSelect Class="mt-2" T="string"
+                            Label="Property name"
+                            Variant="Variant.Outlined"
+                            Dense
+                            ValueChanged="@OnSelectPropertyName"
+                            Clearable
+                            Margin="Margin.Dense">
+                    @foreach (var propertyName in ItemPropertyNames)
+                    {
+                        <MudSelectItem T="string" Value="@propertyName">
+                            <MudStack Row Style="margin-left: 8px;">
+                                @{
+                                    <MudText>@propertyName</MudText>
+                                }
+                            </MudStack>
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" lg="4">
+                <MudTextField Class="mt-2" TextChanged="@OnSearchTermChange" Immediate="true" @bind-Value="EntityHistoryGlobalFilter.OldValue" Adornment="Adornment.End"
+                                AdornmentIcon="@Icons.Material.Filled.Search" Margin="Margin.Dense" IconSize="Size.Small" Size="Size.Small" Variant="Variant.Outlined" Label="Old value">
+                </MudTextField>
+            </MudItem>
+            <MudItem xs="12" lg="4">
+                <MudTextField Class="mt-2" TextChanged="@OnSearchTermChange" Immediate="true" @bind-Value="EntityHistoryGlobalFilter.NewValue" Adornment="Adornment.End"
+                                AdornmentIcon="@Icons.Material.Filled.Search" Margin="Margin.Dense" IconSize="Size.Small" Size="Size.Small" Variant="Variant.Outlined" Label="New value">
+                </MudTextField>
+            </MudItem>
+        </MudGrid>
+        <MudDataGrid T="AuditGridModel" ServerData="@(DataSource)"
+                     Virtualize="true"
+                     @bind-RowsPerPage="_defaultPageSize"
+                     Loading="@_loading"
+                     Striped="true"
+                     Bordered="true"
+                     Dense="true"
+                     ColumnResizeMode="ResizeMode.Column"
+                     DragDropColumnReordering="true"
+                     ApplyDropClassesOnDragStarted="true"
+                     SortLabel="Order by"
+                     Filterable="false"
+                     FilterMode="@DataGridFilterMode.ColumnFilterRow"
+                     Hideable="true"
+                     Hover="true"
+                     @ref="_table">
+            <Columns>
+                <TemplateColumn Title="" Filterable="false" Sortable="false">
+                    <HeaderTemplate>
+                        <MudTooltip Text="@(!AllExpanded ? "Expand all" : "Collapse all")" Placement="Placement.Top">
+                            <MudIconButton DisableElevation
+                                           Icon="@(AllExpanded ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.KeyboardArrowRight)"
+                                           Size="Size.Small"
+                                           OnClick="@(() => OnChangeAllStateClick(!AllExpanded))"
+                                           Color="Color.Primary">
+                            </MudIconButton>
+                        </MudTooltip>
+                    </HeaderTemplate>
+                    <CellTemplate>
+                        <MudTooltip Text="@(AuditEntryDetails.Any(d => d.Id == context.Item.Id && d.IsExpanded == true) ? "Collapse" : "Expand")" Placement="Placement.Top">
+                            <MudIconButton DisableElevation
+                                           Icon="@(AuditEntryDetails.Any(d => d.Id == context.Item.Id && d.IsExpanded == true) ? Icons.Material.Filled.ExpandMore : Icons.Material.Filled.KeyboardArrowRight)"
+                                           Size="Size.Small"
+                                           OnClick="@(() => OnChangeStateClick(context.Item.Id))"
+                                           Color="Color.Primary">
+                            </MudIconButton>
+                        </MudTooltip>
+                    </CellTemplate>
+                </TemplateColumn>
+                <PropertyColumn Property="x => x.StateName" Title="@DisplayNameHelper.Get(typeof(AuditGridModel), nameof(AuditGridModel.StateName))">
+                    <CellTemplate>
+                        @{
+                            AuditData.AuditStateDisplayNames.TryGetValue(context.Item.StateName, out var displayName);
+                            var displayText = displayName ?? context.Item.StateName;
+                        }
+                        @displayText
+                    </CellTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="x => x.CreatedBy" Title="@DisplayNameHelper.Get(typeof(AuditGridModel), nameof(AuditGridModel.CreatedBy))">
+                    <CellTemplate>
+                        <MudAvatar Color="Color.Primary" Size="Size.Small">
+                            @UserInfoUtils.GetInitials(context.Item.CreatedBy)
+                        </MudAvatar>
+                        @context.Item.CreatedBy
+                    </CellTemplate>
+                </PropertyColumn>
+                <PropertyColumn Property="x => x.CreatedDate" Title="@DisplayNameHelper.Get(typeof(AuditGridModel), nameof(AuditGridModel.CreatedDate))">
+                    <CellTemplate>
+                        @context.Item.CreatedDate.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+                    </CellTemplate>
+                </PropertyColumn>
+            </Columns>
+            <ChildRowContent>
+                @if (AuditEntryDetails.Any(d => d.Id == context.Item.Id))
+                {
+                    foreach (var auditEntryDetails in AuditEntryDetails.Where(d => d.Id == context.Item.Id && d.IsExpanded == true))
+                        if (auditEntryDetails.Items.Count() > 0)
+                        {
+                            <AuditEntryDetailsGrid Items="@auditEntryDetails.Items" EntityHistoryGlobalFilter="@EntityHistoryGlobalFilter" StateName="@auditEntryDetails.StateName" />
+                        }
+                        else
+                        {
+                            <MudText Align="Align.Center">No data to display</MudText>
+                        }
+                }
+            </ChildRowContent>
+            <NoRecordsContent>
+                <MudText>No data to display</MudText>
+            </NoRecordsContent>
+            <LoadingContent>
+                <MudText>Loading</MudText>
+            </LoadingContent>
+            <PagerContent>
+                <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+            </PagerContent>
+        </MudDataGrid>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Close" OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>

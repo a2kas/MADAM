@@ -1,0 +1,46 @@
+﻿@page "/settings"
+
+<Permission RequiredPermission="@Permissions.CanManageSettings" />
+<MudPaper>
+    <MudText Class="mb-3" Typo="Typo.h6">
+        <MudIcon Icon="@Icons.Material.Outlined.Settings" Class="mr-3 mb-n1" />
+        Settings
+    </MudText>
+    <MudForm Model="@Model" @ref="@_form" onkeydown="@OnKeyDown" Validation="@(_validator.ValidateValue(Model))">
+        <MudTabs Outlined="true" Border ApplyEffectsToContainer Class="pa-2 mb-4" Elevation="2" ActivePanelIndex="3">
+            <MudTabPanel Text="Appearance" Icon="@Icons.Material.Filled.PieChartOutline" />
+            <MudTabPanel Text="Module settings" Icon="@Icons.Material.Filled.Settings"/>
+            <MudTabPanel Text="Notifications" Icon="@Icons.Material.Filled.Notifications" />
+            <MudTabPanel Text="Usability" Icon="@Icons.Material.Filled.Accessibility">
+                <MudTable Items="_items">
+                    <HeaderContent>
+                        <MudTh Style="width: 30%;">Action description</MudTh>
+                        <MudTh>Value</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Action Description">@context.Description</MudTd>
+                        <MudTd DataLabel="Value">
+                            <MudItem xs="3">
+                                <MudSelect T="int?" Value="@Model.Usability.RowsPerPage" ValueChanged="@OnSelectRowsPerPage">
+                                    @foreach (var option in context.Options)
+                                    {
+                                        <MudSelectItem T="int?" Value="@option.Value" />
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem>
+                                @if (showWarning)
+                                {
+                                    <MudText Class="mt-3" Color="Color.Warning">@warningMessage</MudText>
+                                }
+                            </MudItem>
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+                <MudItem xs="12" Class="pt-3 pb-1 d-flex justify-end gap-2">
+                    <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Loading="@_saving" OnClick="Submit">Save</MudLoadingButton>
+                </MudItem>
+            </MudTabPanel>
+        </MudTabs>
+    </MudForm>
+</MudPaper>

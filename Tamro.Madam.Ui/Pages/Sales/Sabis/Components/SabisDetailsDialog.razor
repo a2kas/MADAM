@@ -1,0 +1,93 @@
+﻿@using Tamro.Madam.Models.Common.Dialog
+@using Tamro.Madam.Models.Customers.Wholesale.Clsf
+<MudDialog xs="6" DefaultFocus="DefaultFocus.FirstChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.LibraryBooks" Class="mr-3 mb-n1" />
+            @GetTitle()
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@Model" @ref="@_form" onkeydown="@OnKeyDown" Validation="@(_validator.ValidateValue(Model))">
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="@DisplayNameHelper.Get(() => Model.ContractTamro)"
+                                  @bind-Value="Model.ContractTamro"
+                                  Immediate="true"
+                                  Disabled="!_userProfileState.Value.HasPermission(Permissions.CanManageSabisContracts)"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  Margin="Margin.Dense"
+                                  MaxLength="150"
+                                  For="@(() => Model.ContractTamro)"
+                                  Required="true">
+                    </MudTextField>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="@DisplayNameHelper.Get(() => Model.ContractSabis)"
+                                  @bind-Value="Model.ContractSabis"
+                                  Immediate="true"
+                                  Disabled="!_userProfileState.Value.HasPermission(Permissions.CanManageSabisContracts)"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  Margin="Margin.Dense"
+                                  MaxLength="150"
+                                  For="@(() => Model.ContractSabis)"
+                                  Required="true">
+                    </MudTextField>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudAutocomplete Label="@DisplayNameHelper.Get(() => Model.Customer)"
+                                     T="WholesaleCustomerClsfModel"
+                                     Required
+                                     MaxItems="20"
+                                     ResetValueOnEmptyText
+                                     Immediate
+                                     Clearable
+                                     Margin="Margin.Dense"
+                                     Dense
+                                     DebounceInterval="200"
+                                     SearchFunc="@SearchCustomers"
+                                     Disabled="!_userProfileState.Value.HasPermission(Permissions.CanManageSabisContracts)"
+                                     ToStringFunc="@(e => e == null ? null : e.DisplayName)"
+                                     ProgressIndicatorColor="Color.Primary"
+                                     Value="Model.Customer"
+                                     ValueChanged="OnCustomerChanged"
+                                     Variant="Variant.Outlined"
+                                     ShowProgressIndicator="true">
+                    </MudAutocomplete>
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudTextField Label="@DisplayNameHelper.Get(() => Model.CompanyId)"
+                                  @bind-Value="Model.CompanyId"
+                                  Immediate="true"
+                                  Disabled
+                                  Variant="Variant.Filled"
+                                  FullWidth="true"
+                                  Margin="Margin.Dense"
+                                  MaxLength="150"
+                                  For="@(() => Model.CompanyId)">
+                    </MudTextField>
+                </MudItem>
+                @if(State == DialogState.View)
+                {
+                    <MudItem xs="12">
+                        <MudTextField Label="@DisplayNameHelper.Get(() => Model.LastEdited)"
+                                      Immediate="true"
+                                      Disabled
+                                      Variant="Variant.Filled"
+                                      FullWidth="true"
+                                      Value="Model.LastEdited"
+                                      Margin="Margin.Dense"
+                                      For="@(() => Model.LastEdited)">
+                        </MudTextField>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
+        <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" Disabled="!_userProfileState.Value.HasPermission(Permissions.CanManageSabisContracts)" Variant="Variant.Filled" Color="Color.Primary" Loading="@_saving" OnClick="Submit">Save</MudLoadingButton>
+    </DialogActions>
+</MudDialog>

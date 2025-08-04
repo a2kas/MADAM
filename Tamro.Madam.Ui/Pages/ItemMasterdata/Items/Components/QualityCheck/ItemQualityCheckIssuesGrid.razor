@@ -1,0 +1,123 @@
+﻿@using Blazor.Flags
+@using Tamro.Madam.Models.ItemMasterdata.Items.QualityCheck
+@using Tamro.Madam.Ui.ComponentExtensions
+<MudDataGrid Items="@Issues" Striped="true"
+Bordered="true"
+Filterable="false"
+Dense="true"
+ColumnResizeMode="ResizeMode.Column"
+DragDropColumnReordering="true"
+ApplyDropClassesOnDragStarted="true">
+    <Columns>
+        <TemplateColumn CellStyle="width: 120px" Title="Actions" Filterable="false" Sortable="false">
+            <CellTemplate>
+                <MudGrid Class="action-bar">
+                    <MudItem>
+                        <MudTooltip Text="Fix" Placement="Placement.Top">
+                            <MudIconButton Icon="@Icons.Material.Filled.Handyman"
+                            Disabled="@(context.Item.Status != ItemQualityIssueStatus.New)"
+                            Size="Size.Small"
+                            Color="@(context.Item.Status != ItemQualityIssueStatus.New ? Color.Dark : Color.Primary)">
+                            </MudIconButton>
+                        </MudTooltip>
+                        <MudTooltip Text="Mark as false positive" Placement="Placement.Top">
+                            <MudIconButton Icon="@Icons.Material.Filled.Flag"
+                            Disabled="@(context.Item.Status != ItemQualityIssueStatus.New)"
+                            Size="Size.Small"
+                            Color="@(context.Item.Status != ItemQualityIssueStatus.New ? Color.Dark : Color.Primary)">
+                            </MudIconButton>
+                        </MudTooltip>
+                        <MudTooltip Text="Restore" Placement="Placement.Top">
+                            <MudIconButton Icon="@Icons.Material.Filled.Restore"
+                            Disabled="@(context.Item.Status == ItemQualityIssueStatus.New)"
+                            Size="Size.Small"
+                            Color="@(context.Item.Status == ItemQualityIssueStatus.New ? Color.Dark : Color.Primary)">
+                            </MudIconButton>
+                        </MudTooltip>
+                    </MudItem>
+                </MudGrid>
+            </CellTemplate>
+        </TemplateColumn>
+        <SelectColumn Size="Size.Small" T="ItemQualityCheckIssueGridModel" ShowInFooter="false"></SelectColumn>
+        <PropertyColumn Property="x => x.IssueEntity" Title="@DisplayNameHelper.Get(typeof(ItemQualityCheckIssueGridModel), nameof(ItemQualityCheckIssueGridModel.IssueEntity))">
+            <CellTemplate>
+                @{
+                    var isBalticItem = context.Item.IssueEntity == "Item";
+                    if (isBalticItem)
+                    {
+                        <span>Baltic item</span>
+                    }
+                    else
+                    {
+                        <span>Local item <CountryFlag Country="@BlazorFlagExtensions.GetBlazorFlagCountry(context.Item.Country)" Size="FlagSize.Normal" /></span>
+                    }
+                }
+            </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.Identifier" Title="@DisplayNameHelper.Get(typeof(ItemQualityCheckIssueGridModel), nameof(ItemQualityCheckIssueGridModel.Identifier))"/>
+        <PropertyColumn Property="x => x.Severity" Title="@DisplayNameHelper.Get(typeof(ItemQualityCheckIssueGridModel), nameof(ItemQualityCheckIssueGridModel.Severity))">
+            <CellTemplate>
+                <span class="severity-@context.Item.Severity.ToString().ToLower()">@context.Item.Severity.ToString()</span>
+            </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.Status" Title="@DisplayNameHelper.Get(typeof(ItemQualityCheckIssueGridModel), nameof(ItemQualityCheckIssueGridModel.Status))">
+            <CellTemplate>
+                @if (context.Item.Status == ItemQualityIssueStatus.Resolved)
+                {
+                    <div class="success-cell">
+                        <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" />
+                        <p style="display: inline-block;">@context.Item.Status.ToString()</p>
+                    </div>
+                }
+                else if (context.Item.Status == ItemQualityIssueStatus.New)
+                {
+                    <div class="error-cell">
+                        <MudIcon Icon="@Icons.Material.Filled.NewLabel" Size="Size.Small" />
+                        <p style="display: inline-block;">@context.Item.Status</p>
+                    </div>
+                }
+                else if (context.Item.Status == ItemQualityIssueStatus.FalsePositive)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Flag" Size="Size.Small" />
+                    <p style="display: inline-block;">False positive</p>
+                }
+            </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.IssueField" Title="@DisplayNameHelper.Get(typeof(ItemQualityCheckIssueGridModel), nameof(ItemQualityCheckIssueGridModel.IssueField))" />
+        <PropertyColumn Property="x => x.IssueDescription" Title="@DisplayNameHelper.Get(typeof(ItemQualityCheckIssueGridModel), nameof(ItemQualityCheckIssueGridModel.IssueDescription))" />
+        <PropertyColumn Property="x => x.ActualValue" Title="@DisplayNameHelper.Get(typeof(ItemQualityCheckIssueGridModel), nameof(ItemQualityCheckIssueGridModel.ActualValue))">
+            <CellTemplate>
+                <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
+                    @{
+                        var result = HighlightDiff(context.Item.ActualValue, context.Item.ExpectedValue, false);
+                        if (string.IsNullOrEmpty(result))
+                        {
+                            <span>@context.Item.ActualValue</span>
+                        }
+                        else {
+                            <span>@((MarkupString)result)</span>
+                        }
+                    }
+                </MudText>
+            </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.ExpectedValue" Title="@DisplayNameHelper.Get(typeof(ItemQualityCheckIssueGridModel), nameof(ItemQualityCheckIssueGridModel.ExpectedValue))">
+            <CellTemplate>
+                <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">
+                    @{
+                        var result = HighlightDiff(context.Item.ActualValue, context.Item.ExpectedValue, true);
+                        if (string.IsNullOrEmpty(result))
+                        {
+                            <span>@context.Item.ExpectedValue</span>
+                        }
+                        else
+                        {
+                            <span>@((MarkupString)result)</span>
+                        }
+                    }
+                </MudText>
+            </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn Property="x => x.RowVer" Title="@DisplayNameHelper.Get(typeof(ItemQualityCheckIssueGridModel), nameof(ItemQualityCheckIssueGridModel.RowVer))" />
+    </Columns>
+</MudDataGrid>

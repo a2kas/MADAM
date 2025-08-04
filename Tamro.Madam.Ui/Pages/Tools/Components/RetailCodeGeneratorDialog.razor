@@ -1,0 +1,99 @@
+﻿@using Blazor.Flags
+@using Tamro.Madam.Common.Regex
+@using Tamro.Madam.Models.General
+@using Tamro.Madam.Models.ItemMasterdata.Items.Bindings.Retail
+@using Tamro.Madam.Ui.ComponentExtensions
+
+<MudDialog xs="6" DefaultFocus="DefaultFocus.FirstChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.AutoMode" Class="mr-3 mb-n1" />
+            Generate retail codes
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@Model" @ref="@_form" onkeydown="@OnKeyDown" Validation="@(_validator.ValidateValue(Model))">
+            <MudGrid>
+                <MudItem xs="4" md="3">
+                    <MudSelect T="CountryModel"
+                               Label="@DisplayNameHelper.Get(() => Model.Country)"
+                               Variant="Variant.Outlined"
+                               Dense
+                               Required
+                               Disabled
+                               Margin="Margin.Dense"
+                               ToStringFunc="@(e => e == null  ? null : e.Name)"
+                               @bind-Value="Model.Country">
+                         @foreach (var country in Classifiers.Countries)
+                        {
+                            <MudSelectItem Style="padding: 0;" T="CountryModel" Value="@country">
+                                <MudStack Row>
+                                    @{
+                                        var flagCountry = BlazorFlagExtensions.GetBlazorFlagCountry<BalticCountry>(country.Value);
+                                        <CountryFlag Style="margin-top: -8px; margin-left: 8px;" Country="@flagCountry" Size="FlagSize.Normal" />
+                                        <MudText>@country.Name</MudText>
+                                    }
+                                 </MudStack>
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="4" md="3">
+                    <MudTextField Label="@DisplayNameHelper.Get(() => Model.CodePrefix)"
+                                  @bind-Value="Model.CodePrefix"
+                                  Immediate
+                                  Variant="Variant.Outlined"
+                                  Disabled
+                                  FullWidth
+                                  Margin="Margin.Dense"
+                                  For="@(() => Model.CodePrefix)"
+                                  Required>
+                    </MudTextField>
+                </MudItem>
+                <MudItem xs="4" md="3">
+                   <MudNumericField Label="@DisplayNameHelper.Get(() => Model.AmountToGenerate)" @bind-Value="Model.AmountToGenerate"
+                             Immediate="true"
+                             Margin="Margin.Dense"
+                             Variant="Variant.Outlined"
+                             FullWidth="true"
+                             Pattern="@NumericRegex.PositiveInteger"
+                             For="@(() => Model.AmountToGenerate)">
+                    </MudNumericField>
+                </MudItem>
+                <MudItem xs="4" md="3">
+                    <MudItem Class="pt-1">
+                        <MudLoadingButton StartIcon="@Icons.Material.Filled.AutoAwesome" Variant="Variant.Filled" Color="Color.Primary" Disabled="@_generating" Loading="@_generating" OnClick="Submit">Generate</MudLoadingButton>
+                    </MudItem>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudCard>
+                        <MudCardHeader>
+                            <CardHeaderContent>
+                                <MudText Typo="Typo.h6">Result</MudText>
+                            </CardHeaderContent>
+                            <CardHeaderActions>
+                                <MudTooltip Text="Copy to clipboard" Placement="Placement.Top">
+                                    <MudIconButton Icon="@Icons.Material.Filled.CopyAll" OnClick="@CopyToClipboard" Color="Color.Primary"/>
+                                </MudTooltip>
+                            </CardHeaderActions>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <MudDataGrid T="GeneratedRetailCodeModel" 
+                                HeaderClass="hide"
+                                Striped="true"
+                                Bordered="true"
+                                Items="@_generatedCodes">
+                                <Columns>
+                                    <PropertyColumn Property="x => x.FullCode" />
+                                </Columns>
+                            </MudDataGrid>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>

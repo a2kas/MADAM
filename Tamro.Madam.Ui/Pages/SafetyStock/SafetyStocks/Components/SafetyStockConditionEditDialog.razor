@@ -1,0 +1,185 @@
+﻿@using Blazor.Flags
+@using Tamro.Madam.Common.Regex
+@using Tamro.Madam.Models.General
+@using Tamro.Madam.Models.ItemMasterdata.Items.SafetyStocks
+@using Tamro.Madam.Models.ItemMasterdata.Items.Wholesale.Clsf
+@using Tamro.Madam.Ui.ComponentExtensions
+@using Tamro.Madam.Ui.Components.Usability
+
+<MudDialog DefaultFocus="DefaultFocus.FirstChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Beenhere" Class="mr-3 mb-n1" />
+            Edit safety stock
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudPaper Elevation="3" Class="pa-2">
+            <MudForm Model="@Model" @ref="@_form" Validation="@(_validator.ValidateValue(Model))">
+                 <MudContainer Class="mt-2"></MudContainer>
+                 <MudGrid Class="d-flex">
+                    <MudItem sm="3" xs="12">
+                         <MudSelect T="BalticCountry"
+                                       Label="@DisplayNameHelper.Get(() => Model.Country)"
+                                       Variant="Variant.Outlined"
+                                       Dense                                       
+                                       Required
+                                       Disabled
+                                       Margin="Margin.Dense"
+                                       @bind-Value="Model.Country">
+                                <MudSelectItem Value="BalticCountry.LT">
+                                    <MudStack Row Style="margin-top: -8px; margin-left: 8px;">
+                                        @{
+                                            var flagCountry = BlazorFlagExtensions.GetBlazorFlagCountry<BalticCountry>(BalticCountry.LT);
+                                            <CountryFlag Country="@flagCountry" Size="FlagSize.Normal" Class="CountryFlag" />
+                                            <MudText Class="pt-2">@BalticCountry.LT.ToString()</MudText>
+                                        }
+                                    </MudStack>
+                                </MudSelectItem>
+                                <MudSelectItem Value="BalticCountry.LV" Disabled>
+                                    <MudStack Row Style="margin-top: -8px; margin-left: 8px;">
+                                        @{
+                                            var flagCountry = BlazorFlagExtensions.GetBlazorFlagCountry<BalticCountry>(BalticCountry.LV);
+                                            <CountryFlag Country="@flagCountry" Size="FlagSize.Normal" Class="CountryFlag" />
+                                            <MudText Class="pt-2">@BalticCountry.LV.ToString()</MudText>
+                                        }
+                                    </MudStack>
+                                </MudSelectItem>
+                                <MudSelectItem Value="BalticCountry.EE" Disabled>
+                                    <MudStack Row Style="margin-top: -8px; margin-left: 8px;">
+                                        @{
+                                            var flagCountry = BlazorFlagExtensions.GetBlazorFlagCountry<BalticCountry>(BalticCountry.EE);
+                                            <CountryFlag Country="@flagCountry" Size="FlagSize.Normal" Class="CountryFlag" />
+                                            <MudText Class="pt-2">@BalticCountry.EE.ToString()</MudText>
+                                        }
+                                    </MudStack>
+                                </MudSelectItem>
+                                    
+                            </MudSelect>
+                    </MudItem>
+                    <MudItem sm="9" xs="12">
+                        <MudTextField Label="@DisplayNameHelper.Get(() => Model.Comment)" @bind-Value="Model.Comment"
+                                      Immediate="true"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      FullWidth="true"
+                                      MaxLength="300"
+                                      For="@(() => Model.Comment)"
+                                      Required="false">
+                        </MudTextField>
+                    </MudItem>
+                    <MudItem sm="11" xs="10">
+                        <MudAutocomplete Label="@DisplayNameHelper.Get(() => Model.Item)"
+                                         T="string"
+                                         Required
+                                         MaxItems="20"
+                                         Immediate
+                                         Margin="Margin.Dense"
+                                         Dense
+                                         Disabled
+                                         Value="Model.Item"
+                                         ProgressIndicatorColor="Color.Primary"
+                                         Variant="Variant.Outlined">
+                        </MudAutocomplete>
+                    </MudItem>
+                    <MudItem sm="1" xs="2">
+                        <MudIconButton Class="pt-1" OnClick="@ToggleItemInfoPopover" Color="Color.Primary" Size="Size.Large" Icon="@Icons.Material.Filled.Info" />
+                        <MudOverlay @bind-Visible="_isItemInfoPopoverOpen" AutoClose="true" />
+                        <MudPopover Elevation="12" Open="_isItemInfoPopoverOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter">
+                            <ChildContent>
+                                <MudSimpleTable Dense Class="label-value-table">
+                                    <tbody>
+                                        <tr>
+                                            <td>@DisplayNameHelper.Get(() => Model.ItemNo)</td>
+                                            <td>@Model.ItemNo</td>
+                                        </tr>
+                                        <tr>
+                                            <td>@DisplayNameHelper.Get(() => Model.ItemName)</td>
+                                            <td>@Model.ItemName</td>
+                                        </tr>
+                                        <tr>
+                                            <td>@DisplayNameHelper.Get(() => Model.ItemGroup)</td>
+                                            <td>@Model.ItemGroup</td>
+                                        </tr>
+                                        <tr>
+                                            <td>@DisplayNameHelper.Get(() => Model.Brand)</td>
+                                            <td>@Model.Brand</td>
+                                        </tr>
+                                        <tr>
+                                            <td>@DisplayNameHelper.Get(() => Model.ProductClass)</td>
+                                            <td>@Model.ProductClass</td>
+                                        </tr>
+                                        <tr>
+                                            <td>@DisplayNameHelper.Get(() => Model.SupplierNumber)</td>
+                                            <td>@Model.SupplierNumber</td>
+                                        </tr>
+                                        <tr>
+                                            <td>@DisplayNameHelper.Get(() => Model.SupplierNick)</td>
+                                            <td>@Model.SupplierNick</td>
+                                        </tr>
+                                        <tr>
+                                            <td>@DisplayNameHelper.Get(() => Model.Substance)</td>
+                                            <td>@Model.Substance</td>
+                                        </tr>
+                                        <tr>
+                                            <td>@DisplayNameHelper.Get(() => Model.Cn1)</td>
+                                            <td>@Model.Cn1</td>
+                                        </tr>
+                                        <tr>
+                                            <td>@DisplayNameHelper.Get(() => Model.Cn3)</td>
+                                            <td>@Model.Cn3</td>
+                                        </tr>
+                                    </tbody>
+                                </MudSimpleTable>
+                            </ChildContent>
+                        </MudPopover>
+                    </MudItem>
+                    <MudItem sm="4" xs="6">
+                        <MudNumericField Label="@DisplayNameHelper.Get(() => Model.CheckDays)" @bind-Value="Model.CheckDays"
+                                         T="int"
+                                         Min="0"
+                                         Immediate="true"
+                                         Required
+                                         Margin="Margin.Dense"
+                                         Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)"
+                                         Variant="Variant.Outlined"
+                                         Pattern="@NumericRegex.PositiveDecimal"
+                                         For="@(() => Model.CheckDays)">
+                        </MudNumericField>
+                    </MudItem>
+                    <MudItem sm="4" xs="6">
+                        <MudCheckBox Label="@DisplayNameHelper.Get(() => Model.CanBuy)"
+                                     Color="Color.Primary"
+                                     Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)"
+                                     Size="Size.Medium"
+                                     @bind-Value="Model.CanBuy">
+                        </MudCheckBox>
+                    </MudItem>
+                    <MudItem sm="12" Class="d-flex">
+                        <MudText Class="mr-2 pt-3">
+                            <b>Restriction on: </b>
+                            @if(string.IsNullOrEmpty(Model.SafetyStockPharmacyChainGroup))
+                            {
+                                <span>Pharmacy chain (<b>@Model.PharmacyChainDisplayName)</b></span>
+                            }
+                            else
+                            {
+                                <span>Pharmacy group (<b>@Model.SafetyStockPharmacyChainGroup)</b></span>
+                            }
+                        </MudText>
+                    </MudItem>
+                    <MudItem sm="6" xs="12">
+                        <MudTextField Class="mt-2" Disabled @bind-Value="Model.WholesaleQuantity" Margin="Margin.Dense" IconSize="Size.Small" Variant="Variant.Filled" Label="Wholesale quantity" />
+                    </MudItem>
+                    <MudItem sm="6" xs="12">
+                        <MudTextField Class="mt-2 warning-helper-text" Disabled Value="Model.RetailQuantity ?? 0" Margin="Margin.Dense" Variant="Variant.Filled" Label="@($"Benu sales per {_initialCheckDays} days")" HelperText="@(_initialCheckDays != Model.CheckDays ? "Benu sales will be updated only the next day after the check days value has been changed" : null)"  />
+                    </MudItem>
+                    </MudGrid>
+            </MudForm>         
+        </MudPaper>
+    </DialogContent>
+        <DialogActions>
+            <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
+            <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" Disabled="!_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock)" Variant="Variant.Filled" Color="Color.Primary" Loading="@_isSaving" OnClick="Submit">Save</MudLoadingButton>
+         </DialogActions>
+</MudDialog>

@@ -1,0 +1,21 @@
+﻿@using Tamro.Madam.Models.ItemMasterdata.Barcodes
+@using Tamro.Madam.Models.Common.Dialog;
+@using Tamro.Madam.Ui.ComponentExtensions;
+
+<MudGrid Class="pa-4">
+    <MudItem xs="12" sm="3">
+        <MudSelect @bind-Value="_itemState.Value.Item.ItemType" 
+            Label="Item Type" 
+            Variant="Variant.Outlined" 
+            Margin="Margin.Dense" 
+            FullWidth="true"
+            Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))"
+            AnchorOrigin="Origin.BottomCenter">
+
+            @foreach (var itemType in _itemTypes)
+            {
+                <MudSelectItem Value="itemType">@itemType</MudSelectItem>
+            }
+        </MudSelect>
+    </MudItem>
+</MudGrid>

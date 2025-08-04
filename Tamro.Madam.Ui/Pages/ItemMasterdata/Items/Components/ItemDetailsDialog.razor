@@ -1,0 +1,81 @@
+﻿@using Tamro.Madam.Models.Common.Dialog;
+@using Tamro.Madam.Ui.ComponentExtensions;
+@using Tamro.Madam.Ui.Pages.ItemMasterdata.Items.Components.Tabs;
+
+<MudDialog lg="10" xl="8" DefaultFocus="DefaultFocus.FirstChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.MedicationLiquid" Class="mr-3 mb-n1" />
+            @GetTitle()
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@_itemState.Value.Item" @ref="@_form" Validation="@(_validator.ValidateValue(_itemState.Value.Item))">
+            <MudTabs Outlined="true" Border ApplyEffectsToContainer Class="pa-2 mb-4" Elevation="2">
+                 <MudTabPanel Text="Item" Icon="@Icons.Material.Filled.MedicationLiquid">
+                     <MudGrid Class="pt-4 pb-4">
+                         <MudItem sm="6" lg="2">
+                             <MudTextField Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.Id)" @bind-Value="_itemState.Value.Item.Id"
+                                           Immediate="true"
+                                           Variant="Variant.Outlined"
+                                           Margin="Margin.Dense"
+                                           Disabled
+                                           FullWidth="true"
+                                           For="@(() => _itemState.Value.Item.Id)">
+                             </MudTextField>
+                         </MudItem>
+                         <MudItem sm="10" lg="7">
+                            <MudTextField Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.ItemName)"
+                                          Value="_itemState.Value.Item.ItemName"
+                                          ReadOnly="true"
+                                          Variant="Variant.Outlined"
+                                          Margin="Margin.Dense"
+                                          FullWidth="true"
+                                          HelperText="This name is automatically generated from brand, item name, producer, numero etc."
+                                          For="@(() => _itemState.Value.Item.ItemName)">
+                            </MudTextField>
+                         </MudItem>
+                         <MudItem xs="6" sm="2" lg="1">
+                             <MudCheckBox Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.Active)"
+                                          @bind-Value="_itemState.Value.Item.Active"
+                                          Size="Size.Medium"
+                                          Color="Color.Primary"
+                                          Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))">
+                             </MudCheckBox>
+                         </MudItem>
+                         <MudItem xs="6" sm="2" lg="1">
+                             <MudCheckBox Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.IsParallel)"
+                                          Value="_itemState.Value.Item.IsParallel"
+                                          Size="Size.Medium"
+                                          Color="Color.Primary"
+                                          Disabled>
+                             </MudCheckBox>
+                         </MudItem>
+                     </MudGrid>
+                 </MudTabPanel>
+             </MudTabs>
+             <MudGrid>
+                 <MudItem xs="12">
+                    <MudTabs Outlined="true" Border ApplyEffectsToContainer Class="pa-2" Elevation="2" KeepPanelsAlive="true">
+                         <MudTabPanel Text="General info" Icon="@Icons.Material.Filled.Info">
+                             <ItemDetailsGeneralTab></ItemDetailsGeneralTab>
+                         </MudTabPanel>
+                        <MudTabPanel Text="Additional info" Icon="@Icons.Material.Filled.PlaylistAddCircle">
+                            <ItemAdditinalInfoTab></ItemAdditinalInfoTab>
+                        </MudTabPanel>
+                         <MudTabPanel Text="Barcodes" Disabled="@(!_itemState.Value.IsTabsActive)" BadgeData="@(_itemState.Value.Item.Barcodes?.Count())" BadgeColor="Color.Primary" Icon="@Icons.Material.Filled.QrCodeScanner">
+                             <ItemBarcodesTab></ItemBarcodesTab>
+                         </MudTabPanel>
+                         <MudTabPanel Disabled="@(!_itemState.Value.IsTabsActive)" BadgeData="@(_itemState.Value.Item.Bindings?.Count())" BadgeColor="Color.Primary" Text="Bindings" Icon="@Icons.Material.Filled.Link">
+                             <ItemBindingsTab></ItemBindingsTab>
+                         </MudTabPanel>
+                     </MudTabs>
+                 </MudItem>
+             </MudGrid>
+         </MudForm>
+     </DialogContent>
+     <DialogActions>
+         <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
+         <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))" Variant="Variant.Filled" Color="Color.Primary" Loading="@_saving" OnClick="Submit">Save</MudLoadingButton>
+     </DialogActions>
+ </MudDialog>

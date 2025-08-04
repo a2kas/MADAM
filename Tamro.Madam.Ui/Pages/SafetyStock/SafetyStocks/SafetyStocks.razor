@@ -1,0 +1,249 @@
+﻿@page "/safety-stock/safety-stocks"
+@using Tamro.Madam.Models.General
+@using Tamro.Madam.Models.ItemMasterdata.Items.SafetyStocks
+@using Tamro.Madam.Ui.Components.DataGrid.Filtering
+
+<Permission RequiredPermission="@Permissions.CanViewSafetyStock" />
+<PageTitle>Safety stocks</PageTitle>
+
+<MudPaper>
+    <MudGrid Class="d-flex">
+        <MudItem sm="2" xs="12" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.Beenhere" Color="Color.Tertiary" Size="Size.Large" />
+            <MudText Class="gap-4 ma-1" Typo="Typo.h6">Safety stocks</MudText>
+        </MudItem>
+        <MudItem sm="10" xs="12" Class="d-flex align-items-end justify-end button-bar">
+            <MudButton Variant="Variant.Outlined"
+                       OnClick="OnReset"
+                       Size="Size.Small"
+                       Disabled="@_loading"
+                       StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Primary"
+                       Style="margin-right: 4px; margin-bottom:4px">
+                Reset
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Size="Size.Small"
+                       Disabled="@(_loading || !_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock))"
+                       OnClick="OnCreate"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       IconColor="Color.Surface">
+                New
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.OpenInNew"
+                       Size="Size.Small"
+                       Disabled="@(_loading || !_userProfileState.Value.HasPermission(Permissions.CanViewSafetyStock))"
+                       OnClick="OnOpen"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       IconColor="Color.Surface">
+                Open
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.FileUpload"
+                       Size="Size.Small"
+                       Disabled="@(_loading || !_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock))"
+                       OnClick="OnImport"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       IconColor="Color.Surface">
+                Import
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                       StartIcon="@Icons.Material.Filled.Delete"
+                       Disabled="@(_selectedSafetyStocks.Count < 1 || _loading || !_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock))"
+                       Size="Size.Small"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       OnClick="OnDeleteChecked"
+                       IconColor="Color.Surface">
+                Delete
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.History"
+                       Disabled="@(_selectedSafetyStocks.Count != 1)"
+                       Size="Size.Small"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       OnClick="OnHistoryView"
+                       IconColor="Color.Surface">
+                History
+            </MudButton>
+            <MudLoadingButton @bind-Loading="_loading" Variant="Variant.Outlined" Color="Color.Primary"
+                              Label="Export"
+                              Disabled="@_loading"
+                              StartIcon="@Icons.Custom.FileFormats.FileExcel"
+                              Size="Size.Small"
+                              Style="margin-right: 4px; margin-bottom:4px"
+                              OnClick="OnExport"
+                              IconColor="Color.Surface">
+                Export
+            </MudLoadingButton>
+        </MudItem>
+        <MudItem xs="12">
+            <MudTextField T="string" Immediate="true" OnKeyDown="OnBasicSearchKeyDown" @bind-Value="@_query.SearchTerm" Placeholder="Search" Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Material.Filled.Search" Margin="Margin.Dense" IconSize="Size.Small" Size="Size.Small" Variant="Variant.Outlined">
+            </MudTextField>
+        </MudItem>
+    </MudGrid>
+    <MudDataGrid T="SafetyStockGridDataModel" ServerData="@(DataSource)"
+                 Virtualize="true"
+                 @bind-RowsPerPage="_defaultPageSize"
+                 FilterMode="@DataGridFilterMode.ColumnFilterRow"
+                 Loading="@_loading"
+                 Bordered="true"
+                 Dense="true"
+                 Striped="true"
+                 SortLabel="Order by"
+                 Filterable="true"
+                 MultiSelection="true"
+                 @bind-SelectedItems="_selectedSafetyStocks"
+                 Hideable="true"
+                 Hover="true"
+                 ColumnResizeMode="ResizeMode.Container"
+                 DragDropColumnReordering="true"
+                 ApplyDropClassesOnDragStarted="true"
+                 FilterDefinitions="@_defaultFilterDefinition"
+                 Class="no-wrap-grid"
+                 SelectOnRowClick="false"
+                 EditMode="@DataGridEditMode.Cell"
+                 ReadOnly="false"
+                 EditTrigger="@DataGridEditTrigger.OnRowClick"
+                 CommittedItemChanges="@CommittedItemChanges"
+                 @ref="_table">
+        <Columns>
+            <SelectColumn Size="Size.Small" T="SafetyStockGridDataModel" ShowInFooter="false"></SelectColumn>
+            <TemplateColumn Editable="false" CellStyle="width: 50px" Title="Actions" Filterable="false" Sortable="false">
+                <CellTemplate>
+                    <MudGrid Class="action-bar">
+                        <MudItem>
+                            <MudTooltip Text="Open" Placement="Placement.Top">
+                                <MudIconButton DisableElevation
+                                               Icon="@Icons.Material.Filled.OpenInNew"
+                                               Size="Size.Small"
+                                               OnClick="@(() => OnOpen(context.Item))"
+                                               Color="Color.Primary">
+                                </MudIconButton>
+                            </MudTooltip>
+                        </MudItem>
+                        <MudItem>
+                            <MudTooltip Text="Delete" Placement="Placement.Top">
+                                <MudIconButton DisableElevation
+                                               Icon="@Icons.Material.Filled.Delete"
+                                               Size="Size.Small"
+                                               OnClick="@(() => OnDeleteSingle(context.Item))"
+                                               Disabled="!_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock)">
+                                </MudIconButton>
+                            </MudTooltip>
+                        </MudItem>
+                        <MudItem>
+                            <MudTooltip Text="More" Placement="Placement.Top">
+                                <MudMenu Class="more-horiz-icon" icon="@Icons.Material.Outlined.MoreHoriz" Variant="Variant.Text" DisableElevation="true" Size="Size.Small" Dense="true" AnchorOrigin="Origin.CenterLeft">
+                                    <MudMenuItem OnClick="@(() => OnHistoryView(context.Item))">History</MudMenuItem>
+                                </MudMenu>
+                            </MudTooltip>
+                        </MudItem>
+                    </MudGrid>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Required="false" Property="x => x.CanBuy" CellStyle="width: 60px" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.CanBuy))">
+                <EditTemplate>
+                    @if (context.Item.SafetyStockPharmacyChainGroup != PharmacyGroup.All.ToString() && _userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock))
+                    {
+                        <MudSelect Value="context.Item.CanBuy" Margin="@Margin.Dense" T="bool" ValueChanged="async val => { await OnCanBuyChanged(context.Item, val);}">
+                            <MudSelectItem T="bool" Value="true">Yes</MudSelectItem>
+                            <MudSelectItem T="bool" Value="false">No</MudSelectItem>
+                        </MudSelect>
+                    }
+                    else
+                    {
+                        <MudText> @(context.Item.CanBuy ? "Yes" : "No")</MudText>
+                    }
+                </EditTemplate>               
+                <FilterTemplate>
+                    <BooleanFilterTemplate FilterOptions="@_canBuyFilterOptions" ApplyClick="@ApplyCanBuyFilter" CancelClick="@ClearCanBuyFilter" />
+                </FilterTemplate>
+            </PropertyColumn>
+            <PropertyColumn Editable="@_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock)" Required="false" Property="x => x.SafetyStockPharmacyChainGroup" CellStyle="width: 60px" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.SafetyStockPharmacyChainGroup))">
+                <EditTemplate>
+                    <MudSelect Value="context.Item.SafetyStockPharmacyChainGroup" Margin="@Margin.Dense" T="string"
+                               ValueChanged="async val => { await OnPharmacyGroupChanged(context.Item, val); }">
+                        @foreach (var pharmacyGroup in _pharmacyGroups)
+                        {
+                            <MudSelectItem T="string" Value="@pharmacyGroup">@pharmacyGroup</MudSelectItem>
+                        }
+                    </MudSelect>
+                </EditTemplate>
+            </PropertyColumn>
+            <PropertyColumn Editable="@_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock)" Required="false" Property="x => x.PharmacyChainDisplayName" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.PharmacyChainDisplayName))">
+                <EditTemplate>
+                    <MudSelect Value="context.Item.PharmacyChainId" Margin="@Margin.Dense" T="int?"
+                               ValueChanged="async val => { await OnPharmacyChainChanged(context.Item, val); }">
+                        @foreach (var pharmacyChain in _pharmacyChains)
+                        {
+                            <MudSelectItem T="int?" Value="@pharmacyChain.Id">@pharmacyChain.DisplayName</MudSelectItem>
+                        }
+                    </MudSelect>
+                </EditTemplate>
+            </PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.ItemNo" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.ItemNo))"></PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.ItemName" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.ItemName))">
+                <CellTemplate>
+                    <MudTooltip Text="@context.Item.ItemName" Placement="Placement.Bottom">
+                        @context.Item.ItemName
+                    </MudTooltip>
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Editable="@_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock)" Property="x => x.CheckDays" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.CheckDays))"></PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.RetailQuantity" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.RetailQuantity))"></PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.WholesaleQuantity" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.WholesaleQuantity))"></PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.QuantityToBuy" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.QuantityToBuy))"></PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.ItemGroup" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.ItemGroup))"></PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.ProductClass" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.ProductClass))"></PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.Brand" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.Brand))"></PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.SupplierNumber" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.SupplierNumber))"></PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.SupplierNick" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.SupplierNick))">
+                <CellTemplate>
+                    <MudTooltip Text="@context.Item.SupplierNick" Placement="Placement.Bottom">
+                        @context.Item.SupplierNick
+                    </MudTooltip>
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.Cn3" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.Cn3))">
+                <CellTemplate>
+                    <MudTooltip Text="@context.Item.Cn3" Placement="Placement.Bottom">
+                        @context.Item.Cn3
+                    </MudTooltip>
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.Cn1" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.Cn1))">
+                <CellTemplate>
+                    <MudTooltip Text="@context.Item.Cn1" Placement="Placement.Bottom">
+                        @context.Item.Cn1
+                    </MudTooltip>
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.Substance" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.Substance))">
+                <CellTemplate>
+                    <MudTooltip Text="@context.Item.Substance" Placement="Placement.Bottom">
+                        @context.Item.Substance
+                    </MudTooltip>
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Editable="@_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock)" Property="x => x.Comment" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.Comment))">
+                <CellTemplate>
+                    <MudTooltip Text="@context.Item.Comment" Placement="Placement.Bottom">
+                        @context.Item.Comment
+                    </MudTooltip>
+                </CellTemplate>
+            </PropertyColumn>
+            <PropertyColumn Editable="false" Property="x => x.Id" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.Id))"></PropertyColumn>
+        </Columns>
+        <NoRecordsContent>
+            <MudText>No data to display</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>

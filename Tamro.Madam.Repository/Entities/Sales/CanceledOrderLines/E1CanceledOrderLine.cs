@@ -1,0 +1,25 @@
+﻿using System.ComponentModel.DataAnnotations;
+using Tamro.Madam.Models.Sales.CanceledOrderLines;
+using Tamro.Madam.Models.Sales.CanceledOrderLines.Statistics;
+using TamroUtilities.EFCore.Models;
+
+namespace Tamro.Madam.Repository.Entities.Sales.CanceledOrderLines;
+
+public class E1CanceledOrderLine : IBaseEntity
+{
+    [Key]
+    public int Id { get; set; }
+    public int OrderLineNo { get; set; }
+    public string ItemNo2 { get; set; }
+    public int OrderedQuantity { get; set; }
+    public int CanceledQuantity { get; set; }
+    public int LastStatus { get; set; }
+    public CanceledOrderLineEmailStatus? EmailStatus { get; set; }
+    public DateTime? NotificationSendDate { get; set; }
+    public string EmailAddress { get; set; }
+    public CancelationReason CancelationReason { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime RowVer { get; set; }
+
+    public int E1CanceledOrderHeaderId { get; set; }
+}

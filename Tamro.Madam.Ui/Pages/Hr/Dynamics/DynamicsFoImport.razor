@@ -1,0 +1,71 @@
+﻿@page "/hr/dynamics-fo-import"
+
+@using Tamro.Madam.Application.Access
+@using Tamro.Madam.Ui.Components.Security
+
+<Permission RequiredPermission="@Permissions.CanGenerateDynamicsImport" />
+<PageTitle>Dynamics FO import</PageTitle>
+
+<MudPaper Class="item-container">
+    <MudGrid Class="d-flex bar-above-item-grid">
+        <MudItem sm="2" xs="12" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.ImportContacts" Color="Color.Tertiary" Size="Size.Large" />
+            <MudText Class="gap-4 ma-1" Typo="Typo.h6">Dynamics FO import</MudText>
+        </MudItem>
+     </MudGrid>
+     <MudGrid>
+         <MudItem xs="12">
+            <MudAlert Severity="Severity.Info">This module processes import files exported from Vikarina and transforms them into a compatible format for Microsoft Dynamics FO. It ensures data validation, formatting, and prepares a downloadable file for seamless import into Dynamics FO</MudAlert>
+         </MudItem>
+         <MudItem xs="12">
+            <MudStack Style="width: 100%">
+                <MudFileUpload T="IReadOnlyList<IBrowserFile>"
+                               @ref="@_fileUpload"
+                               MaximumFileCount="200"
+                               OnFilesChanged="OnInputFilesChanged"                              
+                               Hidden="@false"
+                               InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
+                               InputStyle="opacity:0"
+                               tabindex="-1"
+                               @ondrop="@ClearDragClass"
+                               @ondragenter="@SetDragClass"
+                               @ondragleave="@ClearDragClass"
+                               @ondragend="@ClearDragClass">
+                    <ActivatorContent>
+                        <MudPaper Height="300px"
+                                  Outlined="true"
+                                  Class="scrollable-container">
+                            <MudText Typo="Typo.h6">
+                                Drag and drop files here or click
+                            </MudText>
+                            @if (_files.Any())
+                            {
+                                foreach (var file in _files)
+                                {
+                                    <MudChip T="string"
+                                             Color="Color.Primary"
+                                             Text="@file.Name"
+                                             tabindex="-1" />
+                                }
+                            }
+                        </MudPaper>
+                    </ActivatorContent>
+                </MudFileUpload>
+                <MudToolBar Gutters="@false"
+                            Class="relative d-flex justify-end gap-4">
+                    <MudButton Color="Color.Primary"
+                               OnClick="@OpenFilePickerAsync"
+                               Variant="Variant.Filled">
+                        Browse
+                    </MudButton>
+                    <MudButton Color="Color.Primary"
+                               Disabled="@(!_files.Any())"
+                               OnClick="@Upload"
+                               Variant="Variant.Filled">
+                        Process
+                    </MudButton>
+                </MudToolBar>
+            </MudStack>
+         </MudItem>
+     </MudGrid>
+</MudPaper>

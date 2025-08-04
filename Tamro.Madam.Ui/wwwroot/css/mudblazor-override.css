@@ -1,0 +1,147 @@
+﻿.mud-navmenu.mud-navmenu-default .mud-nav-link.active:not(.mud-nav-link-disabled) {
+    background-color: #F2F6FF;
+}
+
+.mud-nav-link.active svg {
+    color: var(--mud-palette-primary) !important;
+}
+
+.mud-table-row .column-header .mud-icon-root {
+    color: var(--mud-palette-primary);
+}
+
+.mud-table-row .mud-checkbox .mud-icon-root {
+    color: var(--mud-palette-primary);
+}
+
+.mud-list-item-icon .mud-icon-root {
+    color: var(--mud-palette-primary);
+}
+
+.mud-table-row button .mud-icon-root {
+    color: var(--mud-palette-primary);
+}
+
+.mud-table-row button:disabled .mud-icon-root {
+    color: var(--mud-palette-disabled);
+}
+
+button:disabled .mud-icon-root {
+    color: var(--mud-palette-disabled) !important;
+}
+
+.mud-form .mud-input:focus-within div {
+    border-color: var(--mud-palette-primary) !important;
+}
+
+.mud-form .mud-tabs-tabbar {
+    border-color: #656770 !important;
+}
+
+    .mud-form .mud-tabs-tabbar:focus-within {
+        border-color: var(--mud-palette-primary) !important;
+    }
+
+.mud-form .mud-input-error div {
+    border-color: #EE0730 !important;
+}
+
+.mud-form .mud-input-error:focus-within div {
+    border-color: #EE0730 !important;
+}
+
+.mud-form .mud-input-outlined-border {
+    border-color: #656770 !important;
+}
+
+.mud-form .mud-disabled .mud-input-outlined-border {
+    border-color: #b4b4b4 !important;
+}
+
+.mud-sort-index {
+    color: var(--mud-palette-primary);
+}
+
+.mud-table-row .mud-table-cell:first-child {
+    width: 50px;
+}
+
+.mud-drawer-header {
+    padding: 16px 8px 0px 12px;
+}
+
+.mud-drawer, .mud-paper, .mud-appbar {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #ffffff;
+    z-index: 100;
+}
+
+.mud-main-content .mud-paper {
+    margin-top: 22px;
+    padding: 8px;
+}
+
+.mud-barcode rect {
+    height: 30px !important;
+}
+
+img.mud-barcode {
+    display: none;
+}
+
+.mud-dialog {
+    border-radius: 8px;
+}
+
+.mud-dialog-actions {
+    padding: 16px !important;
+}
+
+.mud-dialog-title h6 {
+    text-transform: capitalize !important;
+}
+
+.mud-dialog-title {
+    background-color: var(--mud-palette-primary);
+}
+
+    .mud-dialog-title * {
+        color: white;
+    }
+
+.mud-tabs {
+    border-radius: 8px;
+}
+
+.mud-tabs-tabbar {
+    border-radius: 8px;
+    background-color: #f0f0f0;
+}
+
+.mud-tab {
+    text-transform: capitalize;
+}
+
+.mud-tab-active {
+    border-bottom: 2px solid var(--mud-palette-primary);
+}
+
+.mud-tab-slider.mud-tab-slider-horizontal {
+    height: 0;
+}
+
+.drag-icon-options {
+    display: none;
+}
+
+th div .align-self-center {
+    display: none;
+}
+
+th .mud-input-root.mud-input-root-text::placeholder {
+    opacity: 0;
+}
+
+.mud-table-root {
+    padding: 1px;
+}

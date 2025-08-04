@@ -1,0 +1,80 @@
+﻿@using MudBlazor
+@using Tamro.Madam.Models.Common.Dialog
+@using Tamro.Madam.Models.General
+@using Tamro.Madam.Models.ItemMasterdata.CategoryManagers
+@using Tamro.Madam.Ui.Constants
+
+@code {
+    private bool _canEditCoreMasterdata;
+
+    protected override void OnInitialized()
+    {
+        _canEditCoreMasterdata = _userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata);
+    }
+}
+
+<MudDialog xs="6" DefaultFocus="DefaultFocus.FirstChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Person" Class="mr-3 mb-n1" />
+            @GetTitle()
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@Model" @ref="@_form" onkeydown="@OnKeyDown" Validation="@(_validator.ValidateValue(Model))">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField Label="@DisplayNameHelper.Get(() => Model.EmailAddress)" @bind-Value="Model.EmailAddress"
+                                  Immediate="true"
+                                  Disabled="!_canEditCoreMasterdata"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  For="@(() => Model.EmailAddress)"
+                                  Required="true">
+                    </MudTextField>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="@DisplayNameHelper.Get(() => Model.FirstName)" @bind-Value="Model.FirstName"
+                                  Immediate="true"
+                                  Disabled="!_canEditCoreMasterdata"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  For="@(() => Model.FirstName)"
+                                  Required="true">
+                    </MudTextField>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudTextField Label="@DisplayNameHelper.Get(() => Model.LastName)" @bind-Value="Model.LastName"
+                                  Immediate="true"
+                                  Disabled="!_canEditCoreMasterdata"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  For="@(() => Model.LastName)"
+                                  Required="true">
+                    </MudTextField>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelect T="BalticCountry?" Label="Country" @bind-Value="Model.Country"
+                               Disabled="!_canEditCoreMasterdata"
+                               Variant="Variant.Outlined"
+                               FullWidth="true"
+                               Required="true">
+                        @foreach (var country in Enum.GetValues<BalticCountry>())
+                        {
+                            <MudSelectItem T="BalticCountry?" Value="country">@country</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
+        <MudLoadingButton StartIcon="@Icons.Material.Filled.Save"
+            Disabled="!_canEditCoreMasterdata"
+            Variant="Variant.Filled"
+            Color="Color.Primary"
+            Loading="@_saving"
+            OnClick="Submit">Save</MudLoadingButton>
+    </DialogActions>
+</MudDialog>

@@ -1,0 +1,93 @@
+﻿@using Tamro.Madam.Models.Data.Sales.CanceledOrderLines
+@using Tamro.Madam.Models.ItemMasterdata.Items.SafetyStocks;
+@using Tamro.Madam.Models.Sales.CanceledOrderLines
+@using Tamro.Madam.Ui.Components.DataGrid.Filtering;
+@using Tamro.Madam.Models.Data;
+@using Blazor.Flags;
+@using Tamro.Madam.Ui.ComponentExtensions;
+@using Tamro.Madam.Models.General;
+@using Tamro.Madam.Ui.Pages.Sales.CanceledOrderLines.Components
+
+@page "/sales/canceled-order-lines"
+
+<Permission RequiredPermission="@Permissions.CanViewCanceledOrderLines" />
+<PageTitle>Canceled order lines</PageTitle>
+
+<MudPaper>
+    <MudGrid Class="d-flex">
+        <MudItem sm="2" xs="12" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.DeleteSweep" Color="Color.Tertiary" Size="Size.Large" />
+            <MudText Class="gap-4 ma-1" Typo="Typo.h6">Canceled order lines</MudText>
+        </MudItem>
+        <MudItem sm="10" xs="12" Class="d-flex align-items-end justify-end button-bar">
+            <MudButton Variant="Variant.Outlined"
+                       OnClick="OnReset"
+                       Size="Size.Small"
+                       Disabled="@_loading"
+                       StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Primary"
+                       Style="margin-right: 4px; margin-bottom:4px">
+                Reset
+            </MudButton>
+             <MudLoadingButton @bind-Loading="_loading" Variant="Variant.Outlined" Color="Color.Primary"
+                              Label="Export"
+                              Disabled="@_loading"
+                              StartIcon="@Icons.Custom.FileFormats.FileExcel"
+                              Size="Size.Small"
+                              Style="margin-right: 4px; margin-bottom:4px"
+                              OnClick="OnExport"
+                              IconColor="Color.Surface">
+                Export
+            </MudLoadingButton>
+        </MudItem>
+        <MudItem xs="12">
+            <MudTextField T="string" Immediate="true" OnKeyDown="OnBasicSearchKeyDown" @bind-Value="@_query.SearchTerm" Placeholder="Search" Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Material.Filled.Search" Margin="Margin.Dense" IconSize="Size.Small" Size="Size.Small" Variant="Variant.Outlined">
+            </MudTextField>
+        </MudItem>
+    </MudGrid>
+    <MudDataGrid T="CanceledOrderHeaderGridModel" ServerData="@(DataSource)"
+                 Virtualize="true"
+                 @bind-RowsPerPage="_defaultPageSize"
+                 Loading="@_loading"
+                 Striped="true"
+                 Bordered="true"
+                 Dense="true"
+                 ColumnResizeMode="ResizeMode.Column"
+                 DragDropColumnReordering="true"
+                 ApplyDropClassesOnDragStarted="true"
+                 FilterMode="@DataGridFilterMode.ColumnFilterRow"
+                 Filterable="true"
+                 MultiSelection="true"
+                 Hideable="true"
+                 Hover="true"
+                 @ref="_table">
+        <Columns>
+            <HierarchyColumn T="CanceledOrderHeaderGridModel"></HierarchyColumn>
+            <PropertyColumn Property="x => x.OrderDate" Format="yyyy-MM-dd" Title="@DisplayNameHelper.Get(typeof(CanceledOrderHeaderGridModel), nameof(CanceledOrderHeaderGridModel.OrderDate))" />
+            <PropertyColumn Property="x => x.E1ShipTo" Title="@DisplayNameHelper.Get(typeof(CanceledOrderHeaderGridModel), nameof(CanceledOrderHeaderGridModel.E1ShipTo))" />
+            <PropertyColumn Property="x => x.CustomerName" Sortable="false" Filterable="false" Title="@DisplayNameHelper.Get(typeof(CanceledOrderHeaderGridModel), nameof(CanceledOrderHeaderGridModel.CustomerName))" />
+            <PropertyColumn Property="x => x.CustomerOrderNo" Title="@DisplayNameHelper.Get(typeof(CanceledOrderHeaderGridModel), nameof(CanceledOrderHeaderGridModel.CustomerOrderNo))" />
+            <PropertyColumn Property="x => x.DocumentNo" Title="@DisplayNameHelper.Get(typeof(CanceledOrderHeaderGridModel), nameof(CanceledOrderHeaderGridModel.DocumentNo))" />
+            <PropertyColumn Property="x => x.EmailStatus" Sortable="false" Title="@DisplayNameHelper.Get(typeof(CanceledOrderHeaderGridModel), nameof(CanceledOrderHeaderGridModel.EmailStatus))">
+                <FilterTemplate>
+                    <DictionaryFilterTemplate FilterOptions="@_notificationStatusFilterOptions" Options="@CanceledOrderHeaderData.EmailNotificationStatus" ApplyClick="@ApplyNotificationStatusFilter" CancelClick="@ClearNotificationStatusFilter" />
+                </FilterTemplate>
+                <CellTemplate>
+                    @CanceledOrderHeaderData.EmailNotificationStatus[context.Item.EmailStatus.ToString()]
+                </CellTemplate>
+            </PropertyColumn>        
+        </Columns>
+         <ChildRowContent>
+            <CanceledOrderHeaderDetailsGrid Lines="@context.Item.Lines" />
+        </ChildRowContent>
+        <NoRecordsContent>
+            <MudText>No data to display</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+        </PagerContent>
+    </MudDataGrid>
+</MudPaper>

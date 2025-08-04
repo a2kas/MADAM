@@ -1,0 +1,28 @@
+﻿<MudDialog xs="6" DefaultFocus="DefaultFocus.FirstChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Group" Class="mr-3 mb-n1" />
+            @GetTitle()
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@Model" @ref="@_form" onkeydown="@OnKeyDown" Validation="@(_validator.ValidateValue(Model))">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField Label="@DisplayNameHelper.Get(() => Model.Name)" @bind-Value="Model.Name"
+                        Immediate="true"
+                        Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)"
+                        Variant="Variant.Outlined"
+                        FullWidth="true"
+                        For="@(() => Model.Name)"
+                        Required="true">
+                    </MudTextField>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
+        <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)" Variant="Variant.Filled" Color="Color.Primary" Loading="@_saving" OnClick="Submit">Save</MudLoadingButton>
+    </DialogActions>
+</MudDialog>

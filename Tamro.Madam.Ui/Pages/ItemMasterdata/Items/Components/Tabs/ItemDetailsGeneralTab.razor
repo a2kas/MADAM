@@ -1,0 +1,251 @@
+﻿@using Tamro.Madam.Common.Regex
+@using Tamro.Madam.Models.ItemMasterdata.Atcs
+@using Tamro.Madam.Models.ItemMasterdata.Brands
+@using Tamro.Madam.Models.ItemMasterdata.Forms
+@using Tamro.Madam.Models.ItemMasterdata.MeasurementUnits
+@using Tamro.Madam.Models.ItemMasterdata.Nicks
+@using Tamro.Madam.Models.ItemMasterdata.Producers
+@using Tamro.Madam.Models.ItemMasterdata.Requestors
+
+<MudGrid Class="pt-4 pb-4">
+    <MudItem xs="12" lg="5">
+        <MudItem Class="pb-3" xs="12" style="display: flex;">
+            <MudItem xs="11">
+                <MudAutocomplete Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.Brand)"
+                                 T="BrandClsfModel"
+                                 Required
+                                 MaxItems="50"
+                                 ResetValueOnEmptyText
+                                 Immediate
+                                 Disabled="@(!_itemState.Value.IsEditable)"
+                                 Margin="Margin.Dense"
+                                 Clearable
+                                 SearchFunc="@SearchBrands"
+                                 DebounceInterval="200"
+                                 ToStringFunc="@(e => e == null ? null : e.Name)"
+                                 For="@(() => _itemState.Value.Item.Brand)"
+                                 ProgressIndicatorColor="Color.Primary"
+                                 @bind-Value="_itemState.Value.Item.Brand"
+                                 Variant="Variant.Outlined"
+                                 ShowProgressIndicator="true">
+                </MudAutocomplete>
+            </MudItem>
+            <MudItem xs="1" Class="pt-3 pl-2">
+                <MudIconButton Disabled="@(!_itemState.Value.IsEditable)"
+                               Color="Color.Primary"
+                               Icon="@Icons.Material.Filled.Add"
+                               OnClick="@CreateBrand"
+                               Size="@Size.Small" />
+            </MudItem>
+        </MudItem>
+        <MudItem Class="pb-3" xs="12">
+            <MudTextField Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.Description)" @bind-Value="_itemState.Value.Item.Description"
+                          Immediate="true"
+                          Disabled="@(!_itemState.Value.IsDescriptionEditable)"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          FullWidth="true"
+                          For="@(() => _itemState.Value.Item.Description)">
+            </MudTextField>
+        </MudItem>
+        <MudItem Class="pb-3" xs="12">
+            <MudTextField Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.Strength)" @bind-Value="_itemState.Value.Item.Strength"
+                          Immediate="true"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Disabled="@(!_itemState.Value.IsEditable)"
+                          FullWidth="true"
+                          For="@(() => _itemState.Value.Item.Strength)">
+            </MudTextField>
+        </MudItem>
+        <MudItem Class="pb-3" xs="12">
+            <MudAutocomplete Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.Form)"
+                             T="FormClsfModel"
+                             MaxItems="20"
+                             ResetValueOnEmptyText
+                             Immediate
+                             Margin="Margin.Dense"
+                             Clearable
+                             Disabled="@(!_itemState.Value.IsEditable)"
+                             SearchFunc="@SearchForms"
+                             DebounceInterval="200"
+                             ToStringFunc="@(e => e == null ? null : e.Name)"
+                             For="@(() => _itemState.Value.Item.Form)"
+                             ProgressIndicatorColor="Color.Primary"
+                             @bind-Value="_itemState.Value.Item.Form"
+                             Variant="Variant.Outlined"
+                             ShowProgressIndicator="true">
+            </MudAutocomplete>
+        </MudItem>
+        <MudItem Class="pb-3" xs="12" lg="12" style="display: flex;">
+            <MudItem xs="6">
+                <MudNumericField Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.Measure)" @bind-Value="_itemState.Value.Item.Measure"
+                                 Min="0"
+                                 Immediate="true"
+                                 Margin="Margin.Dense"
+                                 Disabled="@(!_itemState.Value.IsEditable)"
+                                 Variant="Variant.Outlined"
+                                 Format="F2"
+                                 Pattern="@NumericRegex.PositiveDecimal"
+                                 For="@(() => _itemState.Value.Item.Measure)">
+                </MudNumericField>
+            </MudItem>
+            <MudItem xs="6">
+                <MudAutocomplete Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.MeasurementUnit)"
+                                 T="MeasurementUnitClsfModel"
+                                 MaxItems="20"
+                                 ResetValueOnEmptyText
+                                 Immediate
+                                 Clearable
+                                 Disabled="@(!_itemState.Value.IsEditable)"
+                                 Margin="Margin.Dense"
+                                 SearchFunc="@SearchMeasurementUnits"
+                                 DebounceInterval="200"
+                                 ToStringFunc="@(e => e == null ? null : e.Name)"
+                                 For="@(() => _itemState.Value.Item.MeasurementUnit)"
+                                 ProgressIndicatorColor="Color.Primary"
+                                 @bind-Value="_itemState.Value.Item.MeasurementUnit"
+                                 Variant="Variant.Outlined"
+                                 ShowProgressIndicator="true">
+                </MudAutocomplete>
+            </MudItem>
+        </MudItem>
+        <MudItem Class="pb-3" xs="12">
+            <MudNumericField Adornment="Adornment.Start" AdornmentText="N" Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.Numero)" @bind-Value="_itemState.Value.Item.Numero"
+                             Immediate="true"
+                             Margin="Margin.Dense"
+                             Variant="Variant.Outlined"
+                             Disabled="@(!_itemState.Value.IsEditable)"
+                             FullWidth="true"
+                             HideSpinButtons="true"
+                             Pattern="@NumericRegex.PositiveInteger"
+                             For="@(() => _itemState.Value.Item.Numero)">
+            </MudNumericField>
+        </MudItem>
+    </MudItem>
+    <MudHidden Breakpoint="Breakpoint.LgAndUp" Invert="true">
+        <MudDivider Class="mt-6 ml-6" sm="0" lg="2" Vertical="true" FlexItem="true" />
+    </MudHidden>
+    <MudItem xs="12" lg="5">
+        <MudItem Class="pb-3" xs="12" style="display: flex;">
+            <MudItem xs="11">
+                <MudAutocomplete Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.Producer)"
+                                 T="ProducerClsfModel"
+                                 Required
+                                 MaxItems="20"
+                                 Disabled="@(!_itemState.Value.IsEditable)"
+                                 ResetValueOnEmptyText
+                                 Immediate
+                                 Margin="Margin.Dense"
+                                 Clearable
+                                 SearchFunc="@SearchProducers"
+                                 DebounceInterval="200"
+                                 ToStringFunc="@(e => e == null ? null : e.Name)"
+                                 For="@(() => _itemState.Value.Item.Producer)"
+                                 ProgressIndicatorColor="Color.Primary"
+                                 @bind-Value="_itemState.Value.Item.Producer"
+                                 Variant="Variant.Outlined"
+                                 ShowProgressIndicator="true">
+                </MudAutocomplete>
+            </MudItem>
+            <MudItem xs="1" Class="pt-3 pl-2">
+                <MudIconButton Disabled="@(!_itemState.Value.IsEditable)"
+                               Color="Color.Primary"
+                               Icon="@Icons.Material.Filled.Add"
+                               OnClick="@CreateProducer"
+                               Size="@Size.Small" />
+            </MudItem>
+        </MudItem>
+        <MudItem Class="pb-3" xs="12" style="display: flex;">
+            <MudItem xs="11">
+                <MudAutocomplete Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.SupplierNick)"
+                                 T="NickClsfModel"
+                                 MaxItems="20"
+                                 ResetValueOnEmptyText
+                                 Immediate
+                                 Margin="Margin.Dense"
+                                 Clearable
+                                 Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))"
+                                 SearchFunc="@SearchNicks"
+                                 DebounceInterval="200"
+                                 ToStringFunc="@(e => e == null ? null : e.Name)"
+                                 For="@(() => _itemState.Value.Item.SupplierNick)"
+                                 ProgressIndicatorColor="Color.Primary"
+                                 @bind-Value="_itemState.Value.Item.SupplierNick"
+                                 Variant="Variant.Outlined"
+                                 ShowProgressIndicator="true">
+                </MudAutocomplete>
+            </MudItem>
+            <MudItem xs="1" Class="pt-3 pl-2">
+                <MudIconButton Disabled="@(!_itemState.Value.IsEditable)"
+                               Color="Color.Primary"
+                               Icon="@Icons.Material.Filled.Add"
+                               OnClick="@CreateNick"
+                               Size="@Size.Small" />
+            </MudItem>
+        </MudItem>
+        <MudItem Class="pb-3" xs="12">
+            <MudAutocomplete Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.Atc)"
+                             T="AtcClsfModel"
+                             MaxItems="20"
+                             ResetValueOnEmptyText
+                             Immediate
+                             Margin="Margin.Dense"
+                             Clearable
+                             Disabled="@(!_itemState.Value.IsEditable)"
+                             SearchFunc="@SearchAtcs"
+                             DebounceInterval="200"
+                             ToStringFunc="@(e => e == null ? null : $"{e.Value} - {e.Name}")"
+                             For="@(() => _itemState.Value.Item.Atc)"
+                             ProgressIndicatorColor="Color.Primary"
+                             Variant="Variant.Outlined"
+                             ShowProgressIndicator="true"
+                             Value="_itemState.Value.Item.Atc"
+                             ValueChanged="OnAtcChanged">
+            </MudAutocomplete>
+        </MudItem>
+        <MudItem Class="pb-3" xs="12" lg="12">
+            <MudTextField Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.ActiveSubstance)" @bind-Value="_itemState.Value.Item.ActiveSubstance"
+                          Immediate="true"
+                          Disabled="@(!_itemState.Value.IsEditable)"
+                          Margin="Margin.Dense"
+                          Variant="Variant.Outlined"
+                          FullWidth="true"
+                          For="@(() => _itemState.Value.Item.ActiveSubstance)">
+            </MudTextField>
+        </MudItem>
+        <MudItem Class="pb-3" xs="12" lg="12">
+            <MudItem xs="12" lg="12">
+                <MudItem Class="pb-3" xs="12" style="display: flex;">
+                    <MudItem xs="11">
+                        <MudAutocomplete Label="@DisplayNameHelper.Get(() => _itemState.Value.Item.Requestor)"
+                                         T="RequestorClsfModel"
+                                         Required
+                                         MaxItems="20"
+                                         Disabled="@(!_itemState.Value.IsEditable)"
+                                         ResetValueOnEmptyText
+                                         Immediate
+                                         Margin="Margin.Dense"
+                                         Clearable
+                                         SearchFunc="@SearchRequestors"
+                                         DebounceInterval="200"
+                                         ToStringFunc="@(e => e == null ? null : e.Name)"
+                                         For="@(() => _itemState.Value.Item.Requestor)"
+                                         ProgressIndicatorColor="Color.Primary"
+                                         @bind-Value="_itemState.Value.Item.Requestor"
+                                         Variant="Variant.Outlined"
+                                         ShowProgressIndicator="true">
+                        </MudAutocomplete>
+                    </MudItem>
+                    <MudItem xs="1" Class="pt-3 pl-2">
+                        <MudIconButton Disabled="@(!_itemState.Value.IsEditable)"
+                                       Color="Color.Primary"
+                                       Icon="@Icons.Material.Filled.Add"
+                                       OnClick="@CreateRequestor"
+                                       Size="@Size.Small" />
+                    </MudItem>
+                </MudItem>
+            </MudItem>
+        </MudItem>
+    </MudItem>
+</MudGrid>

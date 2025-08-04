@@ -1,0 +1,39 @@
+﻿@using Tamro.Madam.Models.Customers.Wholesale.Clsf
+<MudDialog xs="6" DefaultFocus="DefaultFocus.None">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.PlaylistRemove" Class="mr-3 mb-n1" />
+            Exclude customer
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@_model" @ref="@_form" onkeydown="@OnKeyDown" Validation="@(_validator.ValidateValue(_model))">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudAutocomplete Label="@DisplayNameHelper.Get(() => _model.Customer)"
+                                     T="WholesaleCustomerClsfModel"
+                                     Required
+                                     MaxItems="20"
+                                     ResetValueOnEmptyText
+                                     Immediate
+                                     Clearable
+                                     Margin="Margin.Dense"
+                                     Dense
+                                     DebounceInterval="200"
+                                     SearchFunc="@SearchCustomers"
+                                     ToStringFunc="@(e => e == null ? null : e.DisplayName)"
+                                     For="@(() => _model.Customer)"
+                                     ProgressIndicatorColor="Color.Primary"
+                                     @bind-Value="_model.Customer"
+                                     Variant="Variant.Outlined"
+                                     ShowProgressIndicator="true">
+                    </MudAutocomplete>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
+        <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Loading="@_saving" OnClick="Submit">Save</MudLoadingButton>
+    </DialogActions>
+</MudDialog>

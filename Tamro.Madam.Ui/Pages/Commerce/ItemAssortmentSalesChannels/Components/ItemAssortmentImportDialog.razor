@@ -1,0 +1,175 @@
+﻿@using Tamro.Madam.Models.Commerce.ItemAssortmentSalesChannels.Import
+@using Tamro.Madam.Ui.Components.Usability
+@using Blazor.Flags
+@using MudBlazor;
+@using Tamro.Madam.Models.Commerce.ItemAssortmentSalesChannels
+@using Tamro.Madam.Models.General
+@using Tamro.Madam.Ui.ComponentExtensions
+
+<MudDialog md="6" DefaultFocus="DefaultFocus.FirstChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.FileUpload" Class="mr-3 mb-n1" />
+            Import sales channel assortment
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStepper CenterLabels CompletedStepColor="Color.Success" OnPreviewInteraction="OnPreviewInteraction" ActiveIndexChanged="OnActiveIndexChanged" CurrentStepColor="Color.Primary">
+            <MudStep Title="Provide item numbers">
+                <MudForm Model="@Model" @ref="@_form" Validation="@(_validator.ValidateValue(Model))">
+                    <MudText Typo="Typo.caption">
+                        Select import behavior
+                    </MudText>
+                    <MudRadioGroup @bind-Value="Model.Action">
+                        <MudRadio Color="Color.Primary" Value="@ItemAssortmentImportAction.Extend">
+                            Extend <div class="mud-input-helper-text">(Imported assortment will be added on top of the already existing assortment for this sales channel)</div>
+                        </MudRadio>
+                        <div />
+                        <MudRadio Color="Color.Primary" Value="@ItemAssortmentImportAction.Replace">
+                            Replace <div class="mud-input-helper-text">(Already existing assortment for this sales channel will be replaced with the imported assortment)</div>
+                        </MudRadio>
+                    </MudRadioGroup>
+                    <MudText Typo="Typo.caption">
+                        Paste item numbers
+                    </MudText>
+                    <MudTextField Label="Item No's." Required Immediate="false" @bind-Value="Model.ItemNos" Lines="6" Variant="Variant.Outlined" HelperText="Provide item numbers, separated by space or each in new line">
+                    </MudTextField>
+                </MudForm>
+            </MudStep>
+            <MudStep Title="Validation and modifications">
+                @if(_isLoading)
+                {
+                    <Loader />
+                }
+                else
+                {
+                    @if (_items.Any(x => string.IsNullOrEmpty(x.ItemName)))
+                    {
+                        <MudAlert Severity="Severity.Warning">Item(s) will not be imported: @string.Join(", ", _items.Where(x => string.IsNullOrEmpty(x.ItemName)).Select(x => x.ItemNo))</MudAlert>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Success">All items can be imported</MudAlert>
+                    }
+
+                    <MudDataGrid Striped="true"
+                        Bordered="true"
+                        Virtualize="true"
+                        T="ItemAssortmentItemModel"
+                        ColumnResizeMode="ResizeMode.Column"
+                        Filterable="true"
+                        @bind-RowsPerPage="_defaultPageSize"
+                        FilterMode="@DataGridFilterMode.ColumnFilterRow"
+                        Dense="true"
+                        Items="@_items">
+                        <Columns>
+                            <TemplateColumn CellStyle="width: 50px" Title="Actions" Filterable="false" Sortable="false">
+                                <CellTemplate>
+                                    <MudGrid Class="action-bar">
+                                        <MudItem Class="d-flex align-items-center pt-6">
+                                            <MudTooltip Text="Delete" Placement="Placement.Top">
+                                                <MudIconButton DisableElevation
+                                                               Icon="@Icons.Material.Filled.Delete"
+                                                               Size="Size.Small"
+                                                               OnClick="@(() => OnDeleteRow(context.Item))"
+                                                               Color="Color.Primary">
+                                                </MudIconButton>
+                                            </MudTooltip>
+                                        </MudItem>
+                                    </MudGrid>
+                                </CellTemplate>
+                            </TemplateColumn>
+                            <PropertyColumn Property="x => x.ItemNo" Title="@DisplayNameHelper.Get(typeof(ItemAssortmentItemModel), nameof(ItemAssortmentItemModel.ItemNo))">
+                                <CellTemplate>
+                                    @if (string.IsNullOrEmpty(context.Item.ItemName))
+                                    {
+                                        <p class="error-cell">@context.Item.ItemNo</p>
+                                    }
+                                    else
+                                    {
+                                        @context.Item.ItemNo
+                                    }
+                                </CellTemplate>
+                            </PropertyColumn>
+                            <PropertyColumn Property="x => x.ItemName" Title="@DisplayNameHelper.Get(typeof(ItemAssortmentItemModel), nameof(ItemAssortmentItemModel.ItemName))" />
+                        </Columns>
+                        <NoRecordsContent>
+                            <MudText>No data to display</MudText>
+                        </NoRecordsContent>
+                        <LoadingContent>
+                            <MudText>Loading</MudText>
+                        </LoadingContent>
+                        <PagerContent>
+                            <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+                        </PagerContent>
+                    </MudDataGrid>
+                }
+            </MudStep>
+            <MudStep Title="Overview">
+                @if (_isLoading)
+                {
+                    <Loader />
+                }
+                else
+                {
+                    <MudDataGrid Striped="true"
+                                 Bordered="true"
+                                 Virtualize="true"
+                                 T="ItemAssortmentImportOverviewModel"
+                                 ColumnResizeMode="ResizeMode.Column"
+                                 Filterable="true"
+                                 @bind-RowsPerPage="_defaultPageSize"
+                                 FilterMode="@DataGridFilterMode.ColumnFilterRow"
+                                 Dense="true"
+                                 Items="@_importResult.Overview">
+                        <Columns>
+                            <PropertyColumn Property="x => x.ItemNo" Title="@DisplayNameHelper.Get(typeof(ItemAssortmentImportOverviewModel), nameof(ItemAssortmentImportOverviewModel.ItemNo))">
+                                <CellTemplate>
+                                    @if (string.IsNullOrEmpty(context.Item.ItemName))
+                                    {
+                                        <p class="error-cell">@context.Item.ItemNo</p>
+                                    }
+                                    else
+                                    {
+                                        @context.Item.ItemNo
+                                    }
+                                </CellTemplate>
+                            </PropertyColumn>
+                            <PropertyColumn Property="x => x.ItemName" Title="@DisplayNameHelper.Get(typeof(ItemAssortmentImportOverviewModel), nameof(ItemAssortmentImportOverviewModel.ItemName))" />
+                            <PropertyColumn CellStyle="width: 380px" Property="x => x.Comment" Title="@DisplayNameHelper.Get(typeof(ItemAssortmentImportOverviewModel), nameof(ItemAssortmentImportOverviewModel.Comment))">
+                                <CellTemplate>
+                                    @if (context.Item.IsSuccess)
+                                    {
+                                        <div class="success-cell">
+                                            <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" />
+                                            <p style="display: inline-block;">@context.Item.Comment</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="error-cell">
+                                            <MudIcon Icon="@Icons.Material.Filled.Block" Size="Size.Small" />
+                                            <p style="display: inline-block;">@context.Item.Comment</p>
+                                        </div>
+                                    }
+                                </CellTemplate>
+                            </PropertyColumn>
+                        </Columns>
+                        <NoRecordsContent>
+                            <MudText>No data to display</MudText>
+                        </NoRecordsContent>
+                        <LoadingContent>
+                            <MudText>Loading</MudText>
+                        </LoadingContent>
+                        <PagerContent>
+                            <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+                        </PagerContent>
+                    </MudDataGrid>
+                }
+            </MudStep>
+        </MudStepper>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close" StartIcon="@Icons.Material.Filled.Cancel">Close</MudButton>
+    </DialogActions>
+</MudDialog>

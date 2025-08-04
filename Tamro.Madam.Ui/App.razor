@@ -1,0 +1,25 @@
+﻿@inject NavigationManager NavigationManager
+@using Tamro.Madam.Ui.Pages.Auth
+@using Tamro.Madam.Ui.Pages
+@using Microsoft.AspNetCore.Components.Routing
+
+<Fluxor.Blazor.Web.StoreInitializer />
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeView>
+                <Authorized>
+                    <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+                </Authorized>
+                <NotAuthorized>
+                    <RedirectToLogin />
+                </NotAuthorized>
+            </AuthorizeView>
+        </Found>
+        <NotFound>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <NotFound />
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>

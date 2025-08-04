@@ -1,0 +1,64 @@
+﻿@using Tamro.Madam.Models.ItemMasterdata.Brands
+@using Tamro.Madam.Models.ItemMasterdata.Items
+
+<MudItem xs="12" Class="d-flex">
+    @if (Model.IsDeletable)
+    {
+        <MudIcon class="pt-1" Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
+        <MudText class="pt-1">Brand <b>@Model.Brand.Name</b> can be deleted</MudText>
+    }
+    else
+    {
+        <MudIcon class="pt-1" Icon="@Icons.Material.Filled.Close" Color="Color.Error" />
+        <MudText class="pt-1">Brand <b>@Model.Brand.Name</b> can not be deleted</MudText>
+        <MudButton Color="Color.Primary" OnClick="@OnChangeStateClick" Size="Size.Small">@(Model.IsExpanded ? "Collapse" : "Expand")</MudButton>
+    }
+</MudItem>
+
+@if (Model.IsExpanded && !Model.IsDeletable)
+{
+    <MudItem xs="12" Class="d-flex">
+        <MudItem xs="12" sm="8">
+            <MudDataGrid Items="@Model.AttachedItems" FilterMode="@DataGridFilterMode.ColumnFilterRow" MultiSelection="true" @bind-SelectedItems="_selectedItems">
+                <Columns>
+                    <SelectColumn Size="Size.Small" T="ItemModel" ShowInFooter="false"></SelectColumn>
+                    <PropertyColumn CellStyle="width: 145px" Property="x => x.Id" Title="@DisplayNameHelper.Get(typeof(ItemGridModel), nameof(ItemGridModel.Id))" />
+                    <PropertyColumn Property="x => x.ItemName" Title="@DisplayNameHelper.Get(typeof(ItemGridModel), nameof(ItemGridModel.ItemName))" />
+                </Columns>
+            </MudDataGrid>
+        </MudItem>
+        <MudItem xs="12" sm="4">
+            <MudCard Class="pt-4">
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Change Brand</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudAutocomplete Label="New brand"                                      
+                                     T="BrandClsfModel"
+                                     MaxItems="20"
+                                     ResetValueOnEmptyText
+                                     Immediate
+                                     Margin="Margin.Dense"
+                                     Clearable
+                                     Required
+                                     SearchFunc="@SearchBrands"
+                                     DebounceInterval="200"
+                                     ToStringFunc="@(e => e == null ? null : e.Name)"
+                                     For="@(() => Model.NewBrand)"
+                                     ProgressIndicatorColor="Color.Primary"
+                                     @bind-Value="Model.NewBrand"
+                                     @ref="_newBrandAutoComplete"
+                                     Variant="Variant.Outlined"
+                                     HelperText="Brand will be changed only for the items which are selected in the grid."
+                                     ShowProgressIndicator="true">
+                     </MudAutocomplete>
+                </MudCardContent>
+                <MudCardActions>
+                     <MudButton Class="margin-left-auto" OnClick="@ChangeBrand" Disabled="!_selectedItems.Any()" StartIcon="@Icons.Material.Filled.Handyman" Color="Color.Primary" Variant="Variant.Filled">Change brand for @_selectedItems.Count items</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudItem>
+}

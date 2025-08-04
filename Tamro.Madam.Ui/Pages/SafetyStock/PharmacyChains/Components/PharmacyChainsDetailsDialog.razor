@@ -1,0 +1,88 @@
+﻿@using System.Text.RegularExpressions;
+@using Tamro.Madam.Common.Regex
+@using Tamro.Madam.Models.Common.Dialog;
+@using Tamro.Madam.Models.ItemMasterdata.Items.SafetyStocks.PharmacyChains;
+@using Tamro.Madam.Ui.Constants;
+@using Tamro.Madam.Models.ItemMasterdata.Items.SafetyStocks;
+@using Tamro.Madam.Models.General;
+@using ZXing;
+@using Blazor.Flags;
+@using Tamro.Madam.Models.ItemMasterdata.Items.Bindings;
+@using Tamro.Madam.Ui.ComponentExtensions;
+
+﻿<MudDialog xs="6" DefaultFocus="DefaultFocus.FirstChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.LocalPharmacy" Class="mr-3 mb-n1" />
+            @GetTitle()
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm Model="@Model" @ref="@_form" onkeydown="@OnKeyDown" Validation="@(_validator.ValidateValue(Model))">
+            <MudGrid>
+                <MudItem xs="12">
+                    <MudTextField Label="@DisplayNameHelper.Get(() => Model.DisplayName)" @bind-Value="Model.DisplayName"
+                                  Immediate="true"
+                                  Disabled="!_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock)"
+                                  Variant="Variant.Outlined"
+                                  FullWidth="true"
+                                  For="@(() => Model.DisplayName)"
+                                  Required="true">
+                    </MudTextField>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudNumericField Label="@DisplayNameHelper.Get(() => Model.E1SoldTo)" @bind-Value="Model.E1SoldTo"
+                                     Immediate="true"
+                                     Disabled="!_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock)"
+                                     Variant="Variant.Outlined"
+                                     FullWidth="true"
+                                     For="@(() => Model.E1SoldTo)"
+                                     Pattern="@NumericRegex.PositiveInteger"
+                                     Required="true">
+                    </MudNumericField>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelect T="PharmacyGroup"
+                               Label="@DisplayNameHelper.Get(() => Model.Group)"
+                               Variant="Variant.Outlined"
+                               Dense
+                               Required
+                               Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock))"
+                               @bind-Value="Model.Group">
+                        @foreach (var group in _pharmacyGroups)
+                        {
+                            <MudSelectItem Value="@group">
+                                <MudStack Row>
+                                 <MudText>@group.ToString()</MudText>
+                                    </MudStack>
+                                </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12">
+                    <MudSelect T="bool"
+                               Label="@DisplayNameHelper.Get(() => Model.IsActive)"
+                               Variant="Variant.Outlined"
+                               Dense
+                               Required
+                               Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock))"
+                               @bind-Value="Model.IsActive">
+                         @foreach (BooleanSelection isActive in Enum.GetValues(typeof(BooleanSelection)))
+                        {
+                            bool value = isActive == BooleanSelection.Yes;
+                            <MudSelectItem Value="@value">
+                                <MudStack Row>
+                                 <MudText>@isActive.ToString()</MudText>
+                                    </MudStack>
+                                </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
+        <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" Disabled="!_userProfileState.Value.HasPermission(Permissions.CanManageSafetyStock)" Variant="Variant.Filled" Color="Color.Primary" Loading="@_saving" OnClick="Submit">Save</MudLoadingButton>
+    </DialogActions>
+</MudDialog>

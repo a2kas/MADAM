@@ -1,0 +1,43 @@
+﻿@page "/administration/jobs"
+@using Tamro.Madam.Application.Jobs
+@using Tamro.Madam.Ui.Components.Usability
+
+<PageTitle>Synchronization jobs</PageTitle>
+
+<MudPaper>
+    <MudGrid Class="d-flex">
+        <MudItem sm="2" xs="12" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.Task" Color="Color.Tertiary" Size="Size.Large" />
+            <MudText Class="gap-4 ma-1" Typo="Typo.h6">Synchronization jobs</MudText>
+        </MudItem>
+    </MudGrid>
+    <MudDataGrid T="IOneTimeJob" Items="@Jobs">
+        <Columns>
+           <TemplateColumn Title="Actions">
+                <CellTemplate>
+                    <MudGrid Class="action-bar">
+                        <MudItem Class="d-flex align-items-center pt-6">
+                            @if (context.Item.Processing)
+                            {
+                                <Loader Size="Size.Small"/>
+                                <MudText Class="">In progress...</MudText>
+                            }
+                            else
+                            {
+                                <MudTooltip Text="Execute" Placement="Placement.Top">
+                                    <MudIconButton DisableElevation
+                                                   Icon="@Icons.Material.Filled.PlayArrow"
+                                                   OnClick="@(() => OnExecute(context.Item))"
+                                                   Size="Size.Small"
+                                                   Color="Color.Primary" />
+                                </MudTooltip>
+                            }
+                        </MudItem>
+                    </MudGrid>
+                </CellTemplate>
+            </TemplateColumn>
+            <PropertyColumn Property="x => x.Name" Title="Name" />
+            <PropertyColumn Property="x => x.Description" Title="Description" />
+        </Columns>
+    </MudDataGrid>
+</MudPaper>

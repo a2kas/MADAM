@@ -1,0 +1,15 @@
+﻿<MudDialog DefaultFocus="DefaultFocus.LastChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon=@SubmitIcon Class="mr-3 mb-n1" />
+            @Title
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText>@Content</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
+        <MudButton StartIcon="@SubmitIcon" Color=@SubmitColor Variant=@SubmitVariant OnClick="Submit">@SubmitText</MudButton>
+    </DialogActions>
+</MudDialog>

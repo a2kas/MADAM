@@ -1,0 +1,32 @@
+﻿@using Tamro.Madam.Ui.Components.DataGrid.Filtering;
+@using Tamro.Madam.Models.Data;
+@using Blazor.Flags;
+@using Tamro.Madam.Ui.ComponentExtensions;
+@using Tamro.Madam.Models.General;
+
+@typeparam DataT;
+@typeparam QueryT;
+
+<MudIconButton OnClick="@Open" Icon="@FilterOptions.Icon" Size="@Size.Small" />
+<MudOverlay Visible="@FilterOptions.IsOpen" OnClick="@Close" />
+<MudPopover Open="@FilterOptions.IsOpen" AnchorOrigin="Origin.BottomCenter" TransformOrigin="Origin.TopCenter" Style="width: 150px">
+    <MudStack Spacing="0">
+        @if (MultiSelect)
+        {
+            <MudCheckBox T="bool" Label="Select All" Color="Color.Primary" Size="@Size.Small" Value="FilterOptions.SelectAllChecked" ValueChanged="@((value) => SelectAllCheckedChanged())" />
+            <MudDivider />
+        }
+        <MudStack Spacing="0" Style="overflow-y: auto; max-height: 250px;">
+            @foreach (var option in SelectableOptions.OrderBy(x => x.Key))
+            {
+                <MudCheckBox T="bool" Label="@option.Key" Color="Color.Primary" Size="@Size.Small" Value="@(FilterOptions.SelectedOptions.Contains(option))"
+                             ValueChanged="@((value) => SelectCheckChanged(value, option))">
+                </MudCheckBox>
+            }
+        </MudStack>
+        <MudStack Row="true">
+            <MudButton Color="@Color.Primary" OnClick="@CloseGroupFilter">Close</MudButton>
+            <MudButton Color="@Color.Primary" OnClick="@ApplyGroupFilter">Apply</MudButton>
+        </MudStack>
+    </MudStack>
+</MudPopover>

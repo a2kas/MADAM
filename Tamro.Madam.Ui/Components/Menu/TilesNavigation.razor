@@ -1,0 +1,13 @@
+﻿<MudGrid>
+    @foreach (var item in Model)
+    {
+        <MudItem xs="12" md="4">
+            <MudLink Href="@item.Href" Target="@item.Target">
+                <MudCard Class="tile-card" Style="text-align:center; padding:20px;">
+                    <MudIcon Icon="@item.Icon" Class="tile-icon" />
+                    <MudText Typo="Typo.h6">@item.Title</MudText>
+                </MudCard>
+            </MudLink>
+        </MudItem>
+    }
+</MudGrid>

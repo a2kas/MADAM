@@ -1,0 +1,174 @@
+﻿@using Tamro.Madam.Models.ItemMasterdata.Items.SafetyStocks
+
+<MudDialog md="6" DefaultFocus="DefaultFocus.FirstChild">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.FileUpload" Class="mr-3 mb-n1" />
+            Import safety stock items
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStepperExtended @ref="_stepper" ActiveStepChanged="OnActiveStepChanged" ShowPreviousButton="false" PreventStepChangeAsync="new Func<StepChangeDirection, int, Task<bool>>(CheckChange)"
+            Variant="Variant.Filled" DisableSkipButton="true" Color="Color.Primary" HeaderTextView="HeaderTextView.All" HeaderSize="Size.Large" Loading="false"
+            DisablePreviousButton="true">
+            <ChildContent>
+                <MudStepExtended Title="Provide item numbers" Icon="@Icons.Material.Filled.MedicationLiquid" Optional="false">
+                    <ChildContent>
+                        <MudTextField @ref="_itemNumbersField" Label="Item No's." T="string" Required Immediate="true" @bind-Value="@_itemNumbersFieldValue" Lines="6" Variant="Variant.Outlined" HelperText="Provide item numbers, separated by space or each in new line">
+                        </MudTextField>
+                    </ChildContent>
+                </MudStepExtended>
+                <MudStepExtended Icon="@Icons.Material.Filled.Assignment" Title="Assign and import" Optional="false">
+                    <ChildContent>
+                        @if (_isLoading)
+                        {
+                            <MudLoading LoaderType="LoaderType.Linear" Text="Loading..." Class="mt-8"></MudLoading>
+                        }
+                        else
+                        {
+                            @if(!string.IsNullOrEmpty(_assignFormErrorMessage))
+                            {
+                                <MudAlert Severity="Severity.Error">@_assignFormErrorMessage</MudAlert>
+                            }
+                            @if(_rows.Any(x => string.IsNullOrEmpty(x.ItemName)))
+                            {
+                                <MudAlert Severity="Severity.Warning">Item(s) will not be imported: @string.Join(", ", _rows.Where(x => string.IsNullOrEmpty(x.ItemName)).Select(x => x.ItemNo))</MudAlert>
+                            }
+
+                            <MudDataGrid Striped="true"
+                                         Bordered="true"
+                                         T="SafetyStockGridDataModel"
+                                         EditMode="@DataGridEditMode.Cell"
+                                         EditTrigger="@DataGridEditTrigger.OnRowClick"
+                                         ColumnResizeMode="ResizeMode.Column"                                       
+                                         DragDropColumnReordering="true"
+                                         ReadOnly="false"
+                                         ApplyDropClassesOnDragStarted="true"
+                                         Filterable="false"
+                                         Dense="true" Items="@_rows">
+                                <Columns>
+                                    <TemplateColumn Editable="false" CellStyle="width: 50px" Title="Actions" Filterable="false" Sortable="false">
+                                        <CellTemplate>
+                                            <MudGrid Class="action-bar">
+                                                <MudItem Class="d-flex align-items-center pt-6">
+                                                    <MudTooltip Text="Delete" Placement="Placement.Top">
+                                                        <MudIconButton DisableElevation
+                                                                       Icon="@Icons.Material.Filled.Delete"
+                                                                       Size="Size.Small"
+                                                                       OnClick="@(() => OnDeleteRow(context.Item))"
+                                                                       Color="Color.Primary">
+                                                        </MudIconButton>
+                                                    </MudTooltip>
+                                                    <MudTooltip Text="Add new line" Placement="Placement.Top">
+                                                        <MudIconButton DisableElevation
+                                                                       Icon="@Icons.Material.Filled.Add"
+                                                                       Size="Size.Small"
+                                                                       OnClick="@(() => OnCopyRow(context.Item))"
+                                                                       Color="Color.Primary">
+                                                        </MudIconButton>
+                                                    </MudTooltip>
+                                                </MudItem>
+                                            </MudGrid>
+                                        </CellTemplate>
+                                    </TemplateColumn>
+                                    <PropertyColumn Editable="false" SortBy="x => x.ItemNo" Property="x => x.ItemNo" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.ItemNo))">
+                                        <CellTemplate>
+                                            @if(string.IsNullOrEmpty(context.Item.ItemName))
+                                            {
+                                                <p class="error-cell">@context.Item.ItemNo</p>
+                                            }
+                                            else
+                                            {
+                                                @context.Item.ItemNo
+                                            }
+                                        </CellTemplate>
+                                    </PropertyColumn>
+                                    <PropertyColumn Editable="false" Property="x => x.ItemName" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.ItemName))" />
+                                    <PropertyColumn Property="x => x.SafetyStockPharmacyChainGroup" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.SafetyStockPharmacyChainGroup))">
+                                        <EditTemplate>
+                                            <MudSelect Value="context.Item.SafetyStockPharmacyChainGroup" Margin="@Margin.Dense" T="string"
+                                                       ValueChanged="val => { OnPharmacyGroupChanged(context.Item, val); }">
+                                                @foreach (var pharmacyGroup in _pharmacyGroups)
+                                                {
+                                                    <MudSelectItem T="string" Value="@pharmacyGroup">@pharmacyGroup</MudSelectItem>
+                                                }
+                                            </MudSelect>
+                                        </EditTemplate>
+                                    </PropertyColumn>
+                                    <PropertyColumn Required="false" Property="x => x.PharmacyChainDisplayName" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.PharmacyChainDisplayName))">
+                                        <EditTemplate>
+                                            <MudSelect Value="context.Item.PharmacyChainId" Margin="@Margin.Dense" T="int?"
+                                                       ValueChanged="val => { OnPharmacyChainChanged(context.Item, val); }">
+                                                @foreach (var pharmacyChain in _pharmacyChains.Where(x => x.Country == context.Item.Country))
+                                                {
+                                                    <MudSelectItem T="int?" Value="@pharmacyChain.Id">@pharmacyChain.DisplayName</MudSelectItem>
+                                                }
+                                            </MudSelect>
+                                        </EditTemplate>
+                                    </PropertyColumn>
+                                    <PropertyColumn Required="false" Property="x => x.Comment" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.Comment))">
+                                        <CellTemplate>
+                                            <MudTooltip Text="@context.Item.Comment" Placement="Placement.Bottom">
+                                                @context.Item.Comment
+                                            </MudTooltip>
+                                        </CellTemplate>
+                                    </PropertyColumn>
+                                </Columns>
+                            </MudDataGrid>
+                        }
+                    </ChildContent>
+                </MudStepExtended>
+                <MudStepExtended Icon="@Icons.Material.Filled.Check" Title="Overview">
+                    <ChildContent>
+                        @if (_isLoading)
+                        {
+                            <MudLoading LoaderType="LoaderType.Linear" Text="Loading..." Class="mt-8"></MudLoading>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Success">Import process completed</MudAlert>
+                            <MudDataGrid Striped="true"
+                                         Bordered="true"
+                                         T="SafetyStockImportResultModel"
+                                         ColumnResizeMode="ResizeMode.Column"
+                                         DragDropColumnReordering="true"
+                                         ApplyDropClassesOnDragStarted="true"
+                                         Dense="true" Items="@_importResults">
+                                <Columns>
+                                    <PropertyColumn SortBy="x => x.SafetyStock.ItemNo" Property="x => x.SafetyStock.ItemNo" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.ItemNo))"/>
+                                    <PropertyColumn Property="x => x.SafetyStock.ItemName" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.ItemName))" />
+                                    <PropertyColumn Property="x => x.SafetyStock.SafetyStockPharmacyChainGroup" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.SafetyStockPharmacyChainGroup))"/>
+                                    <PropertyColumn Property="x => x.SafetyStock.PharmacyChainDisplayName" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.PharmacyChainDisplayName))"/>  
+                                    <PropertyColumn Property="x => x.SafetyStock.Comment" Title="@DisplayNameHelper.Get(typeof(SafetyStockGridDataModel), nameof(SafetyStockGridDataModel.Comment))" />
+                                    <PropertyColumn CellStyle="width: 380px" Property="x => x.IsImported" Title="@DisplayNameHelper.Get(typeof(SafetyStockImportResultModel), nameof(SafetyStockImportResultModel.IsImported))">
+                                        <CellTemplate>
+                                            @if (context.Item.IsImported)
+                                            {
+                                                <div class="success-cell">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small"/>
+                                                    <p style="display: inline-block;">@context.Item.Message</p>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="error-cell">
+                                                    <MudIcon Icon="@Icons.Material.Filled.Block" Size="Size.Small" />
+                                                    <p style="display: inline-block;">@context.Item.Message</p>
+                                                </div>
+                                            }
+                                        </CellTemplate>
+                                    </PropertyColumn>
+                                </Columns>
+                            </MudDataGrid>
+                        }
+                    </ChildContent>
+                </MudStepExtended>
+            </ChildContent>
+            <ActionContent>
+            </ActionContent>
+        </MudStepperExtended>
+    </DialogContent>
+    <DialogActions>
+        <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Close">Cancel</MudButton>    
+    </DialogActions>
+</MudDialog>

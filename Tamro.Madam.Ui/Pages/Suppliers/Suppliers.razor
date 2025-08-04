@@ -1,0 +1,21 @@
+﻿@page "/suppliers"
+
+@using Tamro.Madam.Models.Suppliers
+@using Tamro.Madam.Ui.Pages.Suppliers.Components
+
+<PageTitle>Suppliers</PageTitle>
+<Permission RequiredPermission="@Permissions.CanViewCoreMasterdata" />
+
+<MudPaper>
+
+<div style="display: @(_state.Value.ActiveForm == SupplierForm.Grid ? "block" : "none");">
+    <SupplierDataGrid />
+</div>
+
+@switch (_state.Value.ActiveForm)
+{
+        case SupplierForm.Details:
+        <SupplierDetails />
+        break;
+}
+</MudPaper>

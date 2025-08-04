@@ -1,0 +1,20 @@
+﻿@using ApexCharts
+@using Tamro.Madam.Models.Overview
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4">Items Edited Per Month</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        @if(Model.MonthlyEdits?.Any() == true)
+        {
+            <ApexChart TItem="ItemMonthlyEditCountModel" Options="_options">
+                <ApexPointSeries TItem="ItemMonthlyEditCountModel" Items="Model.MonthlyEdits" Name="Item edits per month" SeriesType="SeriesType.Line" 
+                    XValue="@(e => e.Label)" YAggregate="@(e => e.First().Count)">    
+                </ApexPointSeries>
+            </ApexChart>
+        }
+    </MudCardContent>
+</MudCard>

@@ -1,0 +1,24 @@
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Tamro.Madam.Repository.Entities.Customers;
+public class CustomerNotification
+{
+    [Key]
+    public int Id { get; set; }
+
+    [Required]
+    public bool SendCanceledOrderNotification { get; set; }
+
+    [Required]
+    public int CustomerId { get; set; }
+
+    [Required]
+    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+
+    [Required]
+    public DateTime RowVer { get; set; } = DateTime.UtcNow;
+
+    [ForeignKey("CustomerId")]
+    public virtual Customer Customer { get; set; }
+}

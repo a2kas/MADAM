@@ -1,0 +1,45 @@
+﻿@using Tamro.Madam.Models.ItemMasterdata.Barcodes
+
+<MudDataGrid Striped="true"
+                Bordered="true"
+                Filterable
+                FilterMode="DataGridFilterMode.ColumnFilterRow"
+                Dense="true"
+                ColumnResizeMode="ResizeMode.Column"
+                DragDropColumnReordering="true"
+                ApplyDropClassesOnDragStarted="true" 
+                Items="@_itemState.Value.Item.Barcodes">
+    <Columns>
+        <TemplateColumn CellStyle="width: 60px" Title="Actions" Filterable="false" Sortable="false">
+            <CellTemplate>
+                <MudItem Class="d-flex align-items-center">
+                    <MudIconButton Color="Color.Primary" OnClick="@(() => OnEditBarcode(context.Item))" Icon="@Icons.Material.Sharp.OpenInNew" Title="View" Size="Size.Small">
+                    </MudIconButton>
+                    <MudIconButton Color="Color.Primary" OnClick="@(() => OnDeleteBarcode(context.Item.Id))" Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))" Icon="@Icons.Material.Sharp.Delete" Title="Delete" Size="Size.Small">
+                    </MudIconButton>
+                </MudItem>
+            </CellTemplate>
+        </TemplateColumn>
+                <PropertyColumn Property="x => x.Ean" Title="@DisplayNameHelper.Get(typeof(BarcodeGridModel), nameof(BarcodeGridModel.Ean))" />
+                <PropertyColumn Property="x => x.Measure" CellStyle="width: 60px" Filterable="false" Title="@DisplayNameHelper.Get(typeof(BarcodeGridModel), nameof(BarcodeGridModel.Measure))">
+                    <CellTemplate>
+                @if (context.Item.Measure)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Primary" Size="Size.Medium" />
+                }
+            </CellTemplate>
+        </PropertyColumn>
+        <PropertyColumn InitialDirection="SortDirection.Descending" Filterable="false" Property="x => x.RowVer" Title="Last edited" />
+    </Columns>
+</MudDataGrid>
+<MudItem sm="10" xs="12" Class="d-flex pt-2">
+    <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                OnClick="@OnCreateBarcode"
+                StartIcon="@Icons.Material.Filled.Add"
+                Size="Size.Small"
+                Disabled="@(!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata))"
+                Style="margin-right: 4px; margin-bottom:4px"
+                IconColor="Color.Surface">
+        New
+    </MudButton>
+</MudItem>

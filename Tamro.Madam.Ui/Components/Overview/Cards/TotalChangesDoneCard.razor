@@ -1,0 +1,20 @@
+﻿@using ApexCharts
+@using Tamro.Madam.Models.Overview
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4" Color="@MudBlazor.Color.Default">Total Changes Done</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        @if (_entries?.Any() == true)
+        {
+            <ApexChart TItem="AuditEntriesByEntityCountModel" Options="_options">
+                <ApexPointSeries TItem="AuditEntriesByEntityCountModel" Items="_entries" Name="Total changes done" SeriesType="SeriesType.Bar"
+                             XValue="@(e => e.DisplayName)" YAggregate="@(e => e.First().Count)">
+            </ApexPointSeries>
+        </ApexChart>
+        }
+    </MudCardContent>
+</MudCard>

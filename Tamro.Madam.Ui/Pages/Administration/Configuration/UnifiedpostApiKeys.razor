@@ -1,0 +1,120 @@
+﻿@page "/administration/configuration/unifiedpostapikeys"
+
+@using Tamro.Madam.Application.Access
+@using Tamro.Madam.Models.Administration.Configuration.Ubl
+@using Tamro.Madam.Ui.Components.DataGrid.Filtering
+@using Tamro.Madam.Ui.Components.Security
+
+<Permission RequiredPermission="@Permissions.CanManageUnifiedPost" />
+<PageTitle>UnifiedPost API keys</PageTitle>
+
+<MudPaper Class="item-container">
+    <MudGrid Class="d-flex bar-above-item-grid">
+        <MudItem sm="4" xs="12" Class="d-flex align-items-center">
+            <MudIcon Icon="@Icons.Material.Filled.VpnKey" Color="Color.Tertiary" Size="Size.Large" />
+            <MudText Class="gap-4 ma-1" Typo="Typo.h6">UnifiedPost API keys</MudText>
+        </MudItem>
+        <MudItem sm="8" xs="12" Class="d-flex align-items-end justify-end button-bar">
+            <MudButton Variant="Variant.Outlined"
+                       OnClick="OnReset"
+                       Size="Size.Small"
+                       Disabled="@_loading"
+                       StartIcon="@Icons.Material.Filled.Refresh" IconColor="Color.Surface" Color="Color.Primary"
+                       Style="margin-right: 4px; margin-bottom:4px">
+                Reset
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Add"
+                       Size="Size.Small"
+                       Disabled="@(_loading || !_userSettings.HasPermission(Permissions.CanManageUnifiedPost))"
+                       OnClick="OnCreate"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       IconColor="Color.Surface">
+                New
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.OpenInNew"
+                       Size="Size.Small"
+                       Disabled="@(_selectedUblApiKeys.Count != 1)"
+                       OnClick="OnOpen"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       IconColor="Color.Surface">
+                Open
+            </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Error"
+                       StartIcon="@Icons.Material.Filled.Delete"
+                       Disabled="@(_selectedUblApiKeys.Count < 1 || !_userSettings.HasPermission(Permissions.CanManageUnifiedPost))"
+                       Size="Size.Small"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       OnClick="OnDeleteChecked"
+                       IconColor="Color.Surface">
+                Delete
+            </MudButton>
+        </MudItem>
+        <MudItem xs="12">
+            <MudTextField T="string" Immediate="true" OnKeyDown="OnBasicSearchKeyDown" @bind-Value="@_query.SearchTerm" Placeholder="Search" Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Material.Filled.Search" Margin="Margin.Dense" IconSize="Size.Small" Size="Size.Small" Variant="Variant.Outlined">
+            </MudTextField>
+        </MudItem>
+     </MudGrid>
+            <MudDataGrid T="UblApiKeyModel" ServerData="@(DataSource)"
+                 Virtualize="true"
+                 @bind-RowsPerPage="_defaultPageSize"
+                 Loading="@_loading"
+                 Striped="true"
+                 Bordered="true"
+                 Dense="true"
+                 ColumnResizeMode="ResizeMode.Column"
+                 DragDropColumnReordering="true"
+                 ApplyDropClassesOnDragStarted="true"
+                 FilterMode="@DataGridFilterMode.ColumnFilterRow"
+                 Filterable="true"
+                 MultiSelection="true"
+                 Hideable="true"
+                 Hover="true"
+                 @ref="_table"
+                 @bind-SelectedItems="_selectedUblApiKeys">
+            <Columns>
+                <SelectColumn Size="Size.Small" T="UblApiKeyModel" ShowInFooter="false"></SelectColumn>
+                <TemplateColumn CellStyle="width: 90px" Title="Actions" Filterable="false" Sortable="false">
+                    <CellTemplate>
+                        <MudGrid Class="action-bar">
+                        <MudItem>
+                            <MudTooltip Text="Open" Placement="Placement.Top">
+                                <MudIconButton DisableElevation
+                                               Icon="@Icons.Material.Filled.OpenInNew"
+                                               Size="Size.Small"
+                                               Disabled="!_userSettings.HasPermission(Permissions.CanManageUnifiedPost)"
+                                               OnClick="@(() => OnOpen(context.Item))"
+                                               Color="Color.Primary">
+                                </MudIconButton>
+                            </MudTooltip>
+                        </MudItem>
+                        <MudItem>
+                            <MudTooltip Text="Delete" Placement="Placement.Top">
+                                <MudIconButton DisableElevation
+                                               Icon="@Icons.Material.Filled.Delete"
+                                               Size="Size.Small"
+                                               Disabled="!_userSettings.HasPermission(Permissions.CanManageUnifiedPost)"
+                                               OnClick="@(() => OnDeleteSingle(context.Item))">
+                                </MudIconButton>
+                            </MudTooltip>
+                        </MudItem>
+                        </MudGrid>
+                    </CellTemplate>
+                </TemplateColumn>
+            <PropertyColumn Property="x => x.E1SoldTo" CellStyle="width: 20%" Title="@DisplayNameHelper.Get(typeof(UblApiKeyModel), nameof(UblApiKeyModel.E1SoldTo))" />
+            <PropertyColumn Property="x => x.CustomerName" CellStyle="width: 40%" Title="@DisplayNameHelper.Get(typeof(UblApiKeyModel), nameof(UblApiKeyModel.CustomerName))" />
+            <PropertyColumn Property="x => x.ApiKey" CellStyle="width: 40%" Title="@DisplayNameHelper.Get(typeof(UblApiKeyModel), nameof(UblApiKeyModel.ApiKey))" Filterable="false" Sortable="false" />
+            </Columns>
+            <NoRecordsContent>
+                <MudText>No data to display</MudText>
+            </NoRecordsContent>
+            <LoadingContent>
+                <MudText>Loading</MudText>
+            </LoadingContent>
+            <PagerContent>
+                <MudDataGridPager PageSizeOptions="@(new[] { 10, 15, 30, 50, 100, 200 })" />
+            </PagerContent>
+        </MudDataGrid>
+</MudPaper>
