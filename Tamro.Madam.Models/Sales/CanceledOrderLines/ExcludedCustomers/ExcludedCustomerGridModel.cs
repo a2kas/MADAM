@@ -10,4 +10,6 @@ public class ExcludedCustomerGridModel : BaseDataGridModel<ExcludedCustomerGridM
     public int E1SoldTo { get; set; }
     [DisplayName("Customer name")]
     public string Name { get; set; }
+    [DisplayName("Exclusion Level")]
+    public ExclusionLevel ExclusionLevel { get; set; }
 }

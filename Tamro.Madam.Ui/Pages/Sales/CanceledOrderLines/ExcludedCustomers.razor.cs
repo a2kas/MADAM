@@ -10,6 +10,7 @@ using Tamro.Madam.Application.Services.Files;
 using Tamro.Madam.Common.Utils;
 using Tamro.Madam.Models.Sales.CanceledOrderLines.ExcludedCustomers;
 using Tamro.Madam.Ui.ComponentExtensions;
+using Tamro.Madam.Ui.Components.DataGrid.Filtering;
 using Tamro.Madam.Ui.Components.Dialogs;
 using Tamro.Madam.Ui.Pages.Sales.CanceledOrderLines.Components;
 using Tamro.Madam.Ui.Store.State;
@@ -25,6 +26,7 @@ public partial class ExcludedCustomers
     private HashSet<ExcludedCustomerGridModel> _selectedExcludedCustomers = new();
     private ExcludedCustomersQuery _query { get; set; } = new();
     private MudDataGrid<ExcludedCustomerGridModel> _table = new();
+    private DictionaryFilterOptions _exclusionLevelFilterOptions = new();
     #endregion
 
     #region IoC
@@ -172,6 +174,24 @@ public partial class ExcludedCustomers
         {
             _loading = false;
         }
+    }
+    private async Task ClearExclusionLevelFilter()
+    {
+        var filter = _table.FilterDefinitions.Find(x => x.Column.Title == nameof(ExcludedCustomerGridModel.ExclusionLevel));
+        if (filter != null)
+        {
+            _table.FilterDefinitions.Remove(filter);
+            await _table.ReloadServerData();
+        }
+        _exclusionLevelFilterOptions.IsOpen = false;
+        _exclusionLevelFilterOptions.SelectAllChecked = false;
+        _exclusionLevelFilterOptions.SelectedOptions = [];
+    }
+
+    private async Task ApplyExclusionLevelFilter()
+    {
+        _exclusionLevelFilterOptions.IsOpen = false;
+        await _table.ReloadServerData();
     }
     #endregion
 }

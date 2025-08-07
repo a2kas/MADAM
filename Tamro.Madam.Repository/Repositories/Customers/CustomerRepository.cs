@@ -21,6 +21,12 @@ public class CustomerRepository : ICustomerRepository
         return query.SingleOrDefaultAsync(cancellationToken);
     }
 
+    public async Task<List<Customer>> GetMany(Expression<Func<Customer, bool>> filter, List<IncludeOperation<Customer>>? includes = null, bool track = false, CancellationToken cancellationToken = default)
+    {
+        var query = GetQuery(filter, includes, track);
+        return await query.ToListAsync(cancellationToken);
+    }
+
     private IQueryable<Customer> GetQuery(Expression<Func<Customer, bool>> filter, List<IncludeOperation<Customer>>? includes = null, bool track = false)
     {
         IQueryable<Customer> query = _uow.GetRepository<Customer>().AsQueryable();

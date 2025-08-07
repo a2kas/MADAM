@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using LinqKit;
+using Microsoft.EntityFrameworkCore;
 using Tamro.Madam.Models.General;
 using Tamro.Madam.Models.Sales.CanceledOrderLines;
 using Tamro.Madam.Repository.Common;
@@ -10,41 +11,54 @@ namespace Tamro.Madam.Application.Services.Sales.CanceledOrderLines.Resolvers;
 public class CustomerNotificationSettingsResolver : ICanceledOrderLinesResolver
 {
     public int Priority => 2;
-
-    private readonly ICustomerLegalEntityRepository _customerLegalEntityRepository;
     private readonly ICustomerRepository _customerRepository;
 
-    public CustomerNotificationSettingsResolver(ICustomerLegalEntityRepository customerLegalEntityRepository, ICustomerRepository customerRepository)
+    public CustomerNotificationSettingsResolver(ICustomerRepository customerRepository)
     {
-        _customerLegalEntityRepository = customerLegalEntityRepository ?? throw new ArgumentNullException(nameof(customerLegalEntityRepository));
         _customerRepository = customerRepository ?? throw new ArgumentNullException(nameof(customerRepository));
     }
 
     public async Task Resolve(IEnumerable<CanceledOrderHeaderModel> orders, BalticCountry country)
     {
-        foreach (var order in orders)
+        orders.ForEach(o => o.SendCanceledOrderNotification = true);
+        var e1ShipTos = orders.Select(x => x.E1ShipTo).Distinct().ToList();
+        var includes = new List<IncludeOperation<Customer>>
         {
-            order.SendCanceledOrderNotification = true;
-        }
-
-        var ordersWithSoldTo = orders.Where(x => x.SoldTo.HasValue);
-        var soldTos = ordersWithSoldTo.Select(x => x.SoldTo.Value).Distinct().ToList();
-
-        var includes = new List<IncludeOperation<CustomerLegalEntity>>
-        {
-            new (q => q.Include(c => c.NotificationSettings)),
+            new(q => q.Include(c => c.CustomerLegalEntity)
+                       .ThenInclude(cle => cle.NotificationSettings)),
+            new(q => q.Include(c => c.CustomerNotification))
         };
 
-        var customer = await _customerRepository.Get(x => x.IsActive && soldTos.Contains(x.E1ShipTo));
-        var customerLegalEntities = await _customerLegalEntityRepository.GetMany(x => x.IsActive && soldTos.Contains(x.E1SoldTo) && x.Country == country, includes);
-        var customersUnsubscribedFromNotifications = customerLegalEntities.ToDictionary(x => x.E1SoldTo, x => x.NotificationSettings?.SendCanceledOrderNotification);
+        var customers = await _customerRepository.GetMany(
+            x => x.IsActive && e1ShipTos.Contains(x.E1ShipTo),
+            includes,
+            track: false);
 
-        foreach (var order in ordersWithSoldTo)
+        var customerNotificationSettings = customers.ToDictionary(
+            x => x.E1ShipTo,
+            x => GetNotificationSetting(x));
+
+        foreach (var order in orders)
         {
-            if (customersUnsubscribedFromNotifications.TryGetValue(order.SoldTo.Value, out var sendCanceledOrderNotification))
+            if (customerNotificationSettings.TryGetValue(order.E1ShipTo, out var shouldSendNotification))
             {
-                order.SendCanceledOrderNotification = sendCanceledOrderNotification.HasValue && sendCanceledOrderNotification.Value;
+                order.SendCanceledOrderNotification = shouldSendNotification;
             }
         }
+    }
+
+    private static bool GetNotificationSetting(Customer customer)
+    {
+        if (customer.CustomerNotification != null)
+        {
+            return customer.CustomerNotification.SendCanceledOrderNotification;
+        }
+
+        if (customer.CustomerLegalEntity?.NotificationSettings != null)
+        {
+            return customer.CustomerLegalEntity.NotificationSettings.SendCanceledOrderNotification;
+        }
+
+        return true;
     }
 }

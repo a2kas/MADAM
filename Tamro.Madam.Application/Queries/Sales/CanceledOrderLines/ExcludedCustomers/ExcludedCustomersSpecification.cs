@@ -10,7 +10,8 @@ public class ExcludedCustomersSpecification : Specification<CustomerLegalEntity>
 {
     public ExcludedCustomersSpecification(ExcludedCustomersFilter filter)
     {
-        Query.Where(x => !x.NotificationSettings.SendCanceledOrderNotification);
+        Query.Where(x => !x.NotificationSettings.SendCanceledOrderNotification || 
+                    !x.Customer.CustomerNotification.SendCanceledOrderNotification);
 
         if (filter.Country != null)
         {

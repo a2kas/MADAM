@@ -16,67 +16,234 @@ namespace Tamro.Madam.Application.Tests.Services.Sales.CanceledOrderLines.Resolv
 public class CustomerNotificationSettingsResolverTests
 {
     private Fixture _fixture;
-
-    private Mock<ICustomerLegalEntityRepository> _customerLegalEntityRepository;
-
-    private CustomerNotificationSettingsResolver _customerLegalNotificationSettingsResolver;
+    private Mock<ICustomerRepository> _customerRepository;
+    private CustomerNotificationSettingsResolver _customerNotificationSettingsResolver;
 
     [SetUp]
     public void SetUp()
     {
         _fixture = new Fixture();
-
-        _customerLegalEntityRepository = new Mock<ICustomerLegalEntityRepository>();
-
-        _customerLegalNotificationSettingsResolver = new CustomerNotificationSettingsResolver(_customerLegalEntityRepository.Object);
+        _customerRepository = new Mock<ICustomerRepository>();
+        _customerNotificationSettingsResolver = new CustomerNotificationSettingsResolver(_customerRepository.Object);
     }
 
     [Test]
-    public void CustomerEmailResolver_PriorityShouldBeEqualTo2()
+    public void CustomerNotificationSettingsResolver_PriorityShouldBeEqualTo2()
     {
         // Assert
-        _customerLegalNotificationSettingsResolver.Priority.ShouldBe(2);
+        _customerNotificationSettingsResolver.Priority.ShouldBe(2);
     }
 
     [Test]
-    public async Task Resolve_GetsNotificationSettingsBySoldTos()
+    public async Task Resolve_GetsNotificationSettingsByE1ShipTos()
     {
         // Arrange
         var country = BalticCountry.LV;
         var orders = _fixture.CreateMany<CanceledOrderHeaderModel>().ToList();
-        orders[0].SoldTo = 1;
-        orders[1].SoldTo = 2;
-        orders[2].SoldTo = 1;
-        _customerLegalEntityRepository.Setup(x => x.GetMany(It.IsAny<Expression<Func<CustomerLegalEntity, bool>>>(),
-            It.Is<List<IncludeOperation<CustomerLegalEntity>>>(y => y.Count == 1), false, It.IsAny<CancellationToken>())).ReturnsAsync([]);
+        orders[0].E1ShipTo = 1001;
+        orders[1].E1ShipTo = 1002;
+        orders[2].E1ShipTo = 1001;
+
+        _customerRepository.Setup(x => x.GetMany(
+            It.IsAny<Expression<Func<Customer, bool>>>(),
+            It.Is<List<IncludeOperation<Customer>>>(y => y.Count == 2),
+            false,
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Customer>());
 
         // Act
-        await _customerLegalNotificationSettingsResolver.Resolve(orders, country);
+        await _customerNotificationSettingsResolver.Resolve(orders, country);
 
         // Assert
-        _customerLegalEntityRepository.Verify(x => x.GetMany(It.Is<Expression<Func<CustomerLegalEntity, bool>>>(y => y.ToString().Contains(nameof(CustomerLegalEntity.E1SoldTo))),
-            It.Is<List<IncludeOperation<CustomerLegalEntity>>>(y => y.Count == 1), false, It.IsAny<CancellationToken>()), Times.Once);
+        _customerRepository.Verify(x => x.GetMany(
+            It.Is<Expression<Func<Customer, bool>>>(y => y.ToString().Contains(nameof(Customer.E1ShipTo))),
+            It.Is<List<IncludeOperation<Customer>>>(y => y.Count == 2),
+            false,
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Test]
-    public async Task Resolve_ResolvesSendCanceledOrderNotification()
+    public async Task Resolve_ResolvesSendCanceledOrderNotification_FromCustomerNotification()
     {
         // Arrange
         var country = BalticCountry.LV;
         var orders = _fixture.CreateMany<CanceledOrderHeaderModel>(2).ToList();
-        orders[0].SoldTo = 1;
-        orders[1].SoldTo = 2;
-        var customerLegalEntities = _fixture.CreateMany<CustomerLegalEntity>().ToList();
-        customerLegalEntities[0].E1SoldTo = 2;
-        customerLegalEntities[1].E1SoldTo = 1;
-        _customerLegalEntityRepository.Setup(x => x.GetMany(It.IsAny<Expression<Func<CustomerLegalEntity, bool>>>(),
-                    It.Is<List<IncludeOperation<CustomerLegalEntity>>>(y => y.Count == 1), false, It.IsAny<CancellationToken>())).ReturnsAsync(customerLegalEntities);
+        orders[0].E1ShipTo = 1001;
+        orders[1].E1ShipTo = 1002;
+
+        var customers = new List<Customer>
+        {
+            new Customer
+            {
+                E1ShipTo = 1001,
+                CustomerNotification = new CustomerNotification { SendCanceledOrderNotification = false }
+            },
+            new Customer
+            {
+                E1ShipTo = 1002,
+                CustomerNotification = new CustomerNotification { SendCanceledOrderNotification = true }
+            }
+        };
+
+        _customerRepository.Setup(x => x.GetMany(
+            It.IsAny<Expression<Func<Customer, bool>>>(),
+            It.Is<List<IncludeOperation<Customer>>>(y => y.Count == 2),
+            false,
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(customers);
 
         // Act
-        await _customerLegalNotificationSettingsResolver.Resolve(orders, country);
+        await _customerNotificationSettingsResolver.Resolve(orders, country);
 
         // Assert
-        orders[0].SendCanceledOrderNotification.ShouldBe(customerLegalEntities[1].NotificationSettings.SendCanceledOrderNotification);
-        orders[1].SendCanceledOrderNotification.ShouldBe(customerLegalEntities[0].NotificationSettings.SendCanceledOrderNotification);
+        orders[0].SendCanceledOrderNotification.ShouldBe(false);
+        orders[1].SendCanceledOrderNotification.ShouldBe(true);
+    }
+
+    [Test]
+    public async Task Resolve_ResolvesSendCanceledOrderNotification_FromCustomerLegalEntitySettings()
+    {
+        // Arrange
+        var country = BalticCountry.LV;
+        var orders = _fixture.CreateMany<CanceledOrderHeaderModel>(2).ToList();
+        orders[0].E1ShipTo = 1001;
+        orders[1].E1ShipTo = 1002;
+
+        var customers = new List<Customer>
+        {
+            new Customer
+            {
+                E1ShipTo = 1001,
+                CustomerNotification = null, // No customer-specific setting
+                CustomerLegalEntity = new CustomerLegalEntity
+                {
+                    NotificationSettings = new CustomerLegalEntityNotification
+                    {
+                        SendCanceledOrderNotification = false
+                    }
+                }
+            },
+            new Customer
+            {
+                E1ShipTo = 1002,
+                CustomerNotification = null, // No customer-specific setting
+                CustomerLegalEntity = new CustomerLegalEntity
+                {
+                    NotificationSettings = new CustomerLegalEntityNotification
+                    {
+                        SendCanceledOrderNotification = true
+                    }
+                }
+            }
+        };
+
+        _customerRepository.Setup(x => x.GetMany(
+            It.IsAny<Expression<Func<Customer, bool>>>(),
+            It.Is<List<IncludeOperation<Customer>>>(y => y.Count == 2),
+            false,
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(customers);
+
+        // Act
+        await _customerNotificationSettingsResolver.Resolve(orders, country);
+
+        // Assert
+        orders[0].SendCanceledOrderNotification.ShouldBe(false);
+        orders[1].SendCanceledOrderNotification.ShouldBe(true);
+    }
+
+    [Test]
+    public async Task Resolve_CustomerNotificationTakesPriorityOverLegalEntitySetting()
+    {
+        // Arrange
+        var country = BalticCountry.LV;
+        var orders = _fixture.CreateMany<CanceledOrderHeaderModel>(1).ToList();
+        orders[0].E1ShipTo = 1001;
+
+        var customers = new List<Customer>
+        {
+            new Customer
+            {
+                E1ShipTo = 1001,
+                CustomerNotification = new CustomerNotification { SendCanceledOrderNotification = false }, // Customer setting
+                CustomerLegalEntity = new CustomerLegalEntity
+                {
+                    NotificationSettings = new CustomerLegalEntityNotification
+                    {
+                        SendCanceledOrderNotification = true  // Legal entity setting (should be ignored)
+                    }
+                }
+            }
+        };
+
+        _customerRepository.Setup(x => x.GetMany(
+            It.IsAny<Expression<Func<Customer, bool>>>(),
+            It.Is<List<IncludeOperation<Customer>>>(y => y.Count == 2),
+            false,
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(customers);
+
+        // Act
+        await _customerNotificationSettingsResolver.Resolve(orders, country);
+
+        // Assert
+        orders[0].SendCanceledOrderNotification.ShouldBe(false); // Should use customer setting, not legal entity
+    }
+
+    [Test]
+    public async Task Resolve_DefaultsToTrueWhenNoSettingsFound()
+    {
+        // Arrange
+        var country = BalticCountry.LV;
+        var orders = _fixture.CreateMany<CanceledOrderHeaderModel>(1).ToList();
+        orders[0].E1ShipTo = 1001;
+
+        var customers = new List<Customer>
+        {
+            new Customer
+            {
+                E1ShipTo = 1001,
+                CustomerNotification = null,
+                CustomerLegalEntity = new CustomerLegalEntity
+                {
+                    NotificationSettings = null // No settings at all
+                }
+            }
+        };
+
+        _customerRepository.Setup(x => x.GetMany(
+            It.IsAny<Expression<Func<Customer, bool>>>(),
+            It.Is<List<IncludeOperation<Customer>>>(y => y.Count == 2),
+            false,
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(customers);
+
+        // Act
+        await _customerNotificationSettingsResolver.Resolve(orders, country);
+
+        // Assert
+        orders[0].SendCanceledOrderNotification.ShouldBe(true); // Should default to true
+    }
+
+    [Test]
+    public async Task Resolve_DefaultsToTrueWhenCustomerNotFound()
+    {
+        // Arrange
+        var country = BalticCountry.LV;
+        var orders = _fixture.CreateMany<CanceledOrderHeaderModel>(1).ToList();
+        orders[0].E1ShipTo = 1001;
+
+        _customerRepository.Setup(x => x.GetMany(
+            It.IsAny<Expression<Func<Customer, bool>>>(),
+            It.Is<List<IncludeOperation<Customer>>>(y => y.Count == 2),
+            false,
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<Customer>()); // No customers found
+
+        // Act
+        await _customerNotificationSettingsResolver.Resolve(orders, country);
+
+        // Assert
+        orders[0].SendCanceledOrderNotification.ShouldBe(true); // Should default to true
     }
 }

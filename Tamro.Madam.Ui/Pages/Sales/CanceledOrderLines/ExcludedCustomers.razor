@@ -94,6 +94,14 @@
             </TemplateColumn>
             <PropertyColumn Property="x => x.E1SoldTo" CellStyle="width: 250px" Title="@DisplayNameHelper.Get(typeof(ExcludedCustomerGridModel), nameof(ExcludedCustomerGridModel.E1SoldTo))" />
             <PropertyColumn Property="x => x.Name" Filterable="false" Sortable="false" Title="@DisplayNameHelper.Get(typeof(ExcludedCustomerGridModel), nameof(ExcludedCustomerGridModel.Name))" />
+            <PropertyColumn Property="x => x.ExclusionLevel" Filterable="true" Sortable="false" Title="@DisplayNameHelper.Get(typeof(ExcludedCustomerGridModel), nameof(ExcludedCustomerGridModel.ExclusionLevel))">
+@*                 <FilterTemplate>
+                    <DictionaryFilterTemplate FilterOptions="@_exclusionLevelFilterOptions" Options="@ExcludedCustomerData.ExclusionLevels" ApplyClick="@ApplyExclusionLevelFilter" CancelClick="@ClearExclusionLevelFilter" />
+                </FilterTemplate>
+                <CellTemplate>
+                    @ExcludedCustomerData.ExclusionLevels[context.Item.ExclusionLevel.ToString()]
+                </CellTemplate> *@
+            </PropertyColumn>
         </Columns>
         <NoRecordsContent>
             <MudText>No data to display</MudText>

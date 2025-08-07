@@ -14,4 +14,5 @@ public class CustomerLegalEntity : IMadamEntity<int>, IBaseEntity, IAuditable
     public DateTime RowVer { get; set; }
 
     public CustomerLegalEntityNotification NotificationSettings { get; set; }
+    public Customer Customer { get; set; }
 }

@@ -4,7 +4,7 @@ using Tamro.Madam.Repository.Context.Madam;
 using TamroUtilities.EFCore.Models;
 
 namespace Tamro.Madam.Repository.Entities.Customers;
-public class Customer : IMadamEntity<int>, IBaseEntity, IAuditable
+public class Customer : IMadamEntity<int>, IBaseEntity
 {
     [Key]
     public int Id { get; set; }
@@ -26,4 +26,6 @@ public class Customer : IMadamEntity<int>, IBaseEntity, IAuditable
 
     [ForeignKey("CustomerLegalEntityId")]
     public virtual CustomerLegalEntity CustomerLegalEntity { get; set; }
+    [ForeignKey("Id")]
+    public virtual CustomerNotification CustomerNotification { get; set; }
 }

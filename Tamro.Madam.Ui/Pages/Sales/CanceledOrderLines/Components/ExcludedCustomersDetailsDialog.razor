@@ -1,4 +1,5 @@
-﻿@using Tamro.Madam.Models.Customers.Wholesale.Clsf
+﻿@using Tamro.Madam.Models
+@using Tamro.Madam.Models.Customers.Wholesale.Clsf
 <MudDialog xs="6" DefaultFocus="DefaultFocus.None">
     <TitleContent>
         <MudText Typo="Typo.h6">
@@ -29,6 +30,44 @@
                                      ShowProgressIndicator="true">
                     </MudAutocomplete>
                 </MudItem>
+
+                <MudItem xs="12" Class="mt-4">
+                    <MudText Typo="Typo.subtitle2" Class="mb-2">Exclude</MudText>
+                    <MudRadioGroup T="ExclusionLevel" @bind-SelectedOption="_model.ExclusionType">
+                        <MudRadio T="ExclusionLevel" Option="@ExclusionLevel.EntireLegalEntity" Color="Color.Primary" Dense="true">
+                            <MudText>Entire legal entity</MudText>
+                        </MudRadio>
+                        <MudRadio T="ExclusionLevel" Option="@ExclusionLevel.OneOrMorePhysicalLocations" Color="Color.Primary" Dense="true">
+                            <MudText>One or more physical locations</MudText>
+                        </MudRadio>
+                    </MudRadioGroup>
+                </MudItem>
+
+                @if (_model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations && _model.Customer != null)
+                {
+                    <MudItem xs="12" Class="mt-4">
+                        <MudDataGrid T="CustomerLocationModel"
+                                     Items="@_customerLocations"
+                                     Dense="true"
+                                     Hover="true"
+                                     Bordered="true"
+                                     Striped="true"
+                                     FixedHeader="true"
+                                     Height="300px">
+                            <Columns>
+                                <PropertyColumn Property="x => x.ShipToCode" Title="Ship to" />
+                                <PropertyColumn Property="x => x.Name" Title="Name" />
+                                <TemplateColumn Title="Is excluded" CellClass="d-flex justify-center">
+                                    <CellTemplate>
+                                        <MudCheckBox @bind-Checked="@context.Item.IsExcluded"
+                                                     Color="Color.Primary"
+                                                     Dense="true" />
+                                    </CellTemplate>
+                                </TemplateColumn>
+                            </Columns>
+                        </MudDataGrid>
+                    </MudItem>
+                }
             </MudGrid>
         </MudForm>
     </DialogContent>

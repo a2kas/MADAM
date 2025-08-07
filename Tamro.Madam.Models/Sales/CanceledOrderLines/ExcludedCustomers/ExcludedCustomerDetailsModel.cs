@@ -7,4 +7,5 @@ public class ExcludedCustomerDetailsModel
 {
     public WholesaleCustomerClsfModel Customer { get; set; }
     public BalticCountry Country { get; set; }
+    public ExclusionLevel ExclusionType { get; set; }
 }

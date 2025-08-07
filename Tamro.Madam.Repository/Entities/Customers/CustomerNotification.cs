@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Tamro.Madam.Repository.Entities.Customers;
 public class CustomerNotification
@@ -18,7 +17,4 @@ public class CustomerNotification
 
     [Required]
     public DateTime RowVer { get; set; } = DateTime.UtcNow;
-
-    [ForeignKey("CustomerId")]
-    public virtual Customer Customer { get; set; }
 }
