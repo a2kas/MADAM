@@ -93,6 +93,11 @@ public partial class ExcludedCustomers
 
     private async Task OnCreate()
     {
+        var parameters = new DialogParameters
+        {
+            ["IsEditMode"] = false,
+        };
+
         var options = new DialogOptions
         {
             CloseButton = true,
@@ -104,6 +109,35 @@ public partial class ExcludedCustomers
         var state = await dialog.Result;
 
         await _table.ReloadServerData();
+    }
+
+    private async Task OnEdit(int excludedCustomerId)
+    {
+        var parameters = new DialogParameters
+        {
+            ["IsEditMode"] = true,
+            ["ExcludedCustomerId"] = excludedCustomerId
+        };
+
+        var options = new DialogOptions()
+        {
+            CloseButton = true,
+            MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        };
+
+        var dialog = DialogService.Show<ExcludedCustomersDetailsDialog>("Exclude Customer", parameters, options);
+        var result = await dialog.Result;
+
+        if (result != null && !result.Canceled)
+        {
+            await _table.ReloadServerData();
+        }
+    }
+
+    private async Task OnEditSingle(ExcludedCustomerGridModel excludedCustomer)
+    {
+        await OnEdit(excludedCustomer.Id);
     }
 
     private async Task OnDeleteSingle(ExcludedCustomerGridModel excludedCustomer)

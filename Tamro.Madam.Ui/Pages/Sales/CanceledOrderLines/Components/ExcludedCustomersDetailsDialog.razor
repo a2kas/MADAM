@@ -1,10 +1,12 @@
 ﻿@using Tamro.Madam.Models
 @using Tamro.Madam.Models.Customers.Wholesale.Clsf
+@using Tamro.Madam.Models.Sales.CanceledOrderLines.ExcludedCustomers
+
 <MudDialog xs="6" DefaultFocus="DefaultFocus.None">
     <TitleContent>
         <MudText Typo="Typo.h6">
             <MudIcon Icon="@Icons.Material.Filled.PlaylistRemove" Class="mr-3 mb-n1" />
-            Exclude customer
+            @(_isEditMode ? "Edit excluded customer" : "Exclude customer")
         </MudText>
     </TitleContent>
     <DialogContent>
@@ -26,14 +28,19 @@
                                      For="@(() => _model.Customer)"
                                      ProgressIndicatorColor="Color.Primary"
                                      @bind-Value="_model.Customer"
+                                     @bind-Value:after="OnCustomerChanged"
                                      Variant="Variant.Outlined"
-                                     ShowProgressIndicator="true">
+                                     ShowProgressIndicator="true"
+                                     Disabled="@_isEditMode"
+                                     HelperText="@(_isEditMode ? "Customer cannot be changed when editing" : "")">>
                     </MudAutocomplete>
                 </MudItem>
 
                 <MudItem xs="12" Class="mt-4">
                     <MudText Typo="Typo.subtitle2" Class="mb-2">Exclude</MudText>
-                    <MudRadioGroup T="ExclusionLevel" @bind-SelectedOption="_model.ExclusionType">
+                    <MudRadioGroup T="ExclusionLevel"
+                        @bind-Value="_model.ExclusionType"
+                        @bind-Value:after="OnExclusionTypeChanged">
                         <MudRadio T="ExclusionLevel" Option="@ExclusionLevel.EntireLegalEntity" Color="Color.Primary" Dense="true">
                             <MudText>Entire legal entity</MudText>
                         </MudRadio>
@@ -46,26 +53,82 @@
                 @if (_model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations && _model.Customer != null)
                 {
                     <MudItem xs="12" Class="mt-4">
-                        <MudDataGrid T="CustomerLocationModel"
-                                     Items="@_customerLocations"
-                                     Dense="true"
-                                     Hover="true"
-                                     Bordered="true"
-                                     Striped="true"
-                                     FixedHeader="true"
-                                     Height="300px">
-                            <Columns>
-                                <PropertyColumn Property="x => x.ShipToCode" Title="Ship to" />
-                                <PropertyColumn Property="x => x.Name" Title="Name" />
-                                <TemplateColumn Title="Is excluded" CellClass="d-flex justify-center">
-                                    <CellTemplate>
-                                        <MudCheckBox @bind-Checked="@context.Item.IsExcluded"
-                                                     Color="Color.Primary"
-                                                     Dense="true" />
-                                    </CellTemplate>
-                                </TemplateColumn>
-                            </Columns>
-                        </MudDataGrid>
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">Select physical locations to exclude</MudText>
+                        
+                        @if (_loadingLocations)
+                        {
+                            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="300px" />
+                        }
+                        else if (!_customerLocations.Any())
+                        {
+                            <MudAlert Severity="Severity.Info" Class="mt-2">
+                                No physical locations found for this customer.
+                            </MudAlert>
+                        }
+                        else
+                        {
+                            <MudPaper Class="pa-2" Elevation="1">
+                                <div class="d-flex justify-space-between align-center mb-2">
+                                    <MudText Typo="Typo.caption">
+                                        @GetSelectionSummary()
+                                    </MudText>
+                                    <div>
+                                        <MudButton Size="Size.Small" 
+                                                   StartIcon="@Icons.Material.Filled.SelectAll"
+                                                   OnClick="SelectAll">
+                                            Select All
+                                        </MudButton>
+                                        <MudButton Size="Size.Small" 
+                                                   StartIcon="@Icons.Material.Filled.ClearAll"
+                                                   OnClick="ClearAll">
+                                            Clear All
+                                        </MudButton>
+                                    </div>
+                                </div>
+                                
+                                <MudDataGrid T="CustomerLocationModel"
+                                             Items="@_customerLocations"
+                                             Dense="true"
+                                             Hover="true"
+                                             Bordered="true"
+                                             Striped="true"
+                                             FixedHeader="true"
+                                             Height="300px"
+                                             RowClassFunc="@GetRowClass">
+                                    <Columns>
+                                        <TemplateColumn Title="" CellClass="d-flex justify-center" Width="60px">
+                                            <CellTemplate>
+                                                <MudCheckBox Checked="@context.Item.IsSelected"
+                                                             ValueChanged="@(EventCallback.Factory.Create<bool>(this, value => OnLocationSelectionChanged(context.Item, value)))"
+                                                             Color="Color.Primary"
+                                                             Dense="true" />
+                                            </CellTemplate>
+                                        </TemplateColumn>
+                                        <PropertyColumn Property="x => x.E1ShipTo" Title="Ship to" />
+                                        <PropertyColumn Property="x => x.Name" Title="Name" />
+                                        <TemplateColumn Title="Status" Width="120px">
+                                            <CellTemplate>
+                                                @if (context.Item.IsExcluded && !context.Item.IsSelected)
+                                                {
+                                                    <MudChip Size="Size.Small" Color="Color.Warning" Text="Currently Excluded" />
+                                                }
+                                                else if (context.Item.IsSelected)
+                                                {
+                                                    <MudChip Size="Size.Small" Color="Color.Error" Text="Will be Excluded" />
+                                                }
+                                                else
+                                                {
+                                                    <MudChip Size="Size.Small" Color="Color.Success" Text="Active" />
+                                                }
+                                            </CellTemplate>
+                                        </TemplateColumn>
+                                    </Columns>
+                                    <NoRecordsContent>
+                                        <MudText>No locations available for this customer.</MudText>
+                                    </NoRecordsContent>
+                                </MudDataGrid>
+                            </MudPaper>
+                        }
                     </MudItem>
                 }
             </MudGrid>
@@ -73,6 +136,13 @@
     </DialogContent>
     <DialogActions>
         <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
-        <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" Color="Color.Primary" Loading="@_saving" OnClick="Submit">Save</MudLoadingButton>
+        <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" 
+                          Variant="Variant.Filled" 
+                          Color="Color.Primary" 
+                          Loading="@_saving" 
+                          OnClick="Submit"
+                          Disabled="@(!IsFormValid())">
+            @(_isEditMode ? "Update" : "Save")
+        </MudLoadingButton>
     </DialogActions>
 </MudDialog>

@@ -36,6 +36,15 @@
                        IconColor="Color.Surface">
                 New
             </MudButton>
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary"
+                       StartIcon="@Icons.Material.Filled.Edit"
+                       Disabled="@(_selectedExcludedCustomers.Count != 1)"
+                       Size="Size.Small"
+                       OnClick="@(async () => await OnEdit(_selectedExcludedCustomers.Single().Id))"
+                       Style="margin-right: 4px; margin-bottom:4px"
+                       IconColor="Color.Surface">
+                Edit
+            </MudButton>
             <MudButton Variant="Variant.Outlined" Color="Color.Error"
                        StartIcon="@Icons.Material.Filled.Delete"
                        Disabled="@(_selectedExcludedCustomers.Count < 1)"
@@ -87,7 +96,15 @@
                                                 Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)"
                                                 OnClick="@(() => OnDeleteSingle(context.Item))">
                                 </MudIconButton>
-                            </MudTooltip> 
+                            </MudTooltip>
+                            <MudTooltip Text="Edit" Placement="Placement.Top">
+                                <MudIconButton DisableElevation
+                                               Icon="@Icons.Material.Filled.Edit"
+                                               Size="Size.Small"
+                                               Disabled="!_userProfileState.Value.HasPermission(Permissions.CanEditCoreMasterdata)"
+                                               OnClick="@(() => OnEditSingle(context.Item))">
+                                </MudIconButton>
+                            </MudTooltip>
                         </MudItem>
                     </MudGrid>
                 </CellTemplate>

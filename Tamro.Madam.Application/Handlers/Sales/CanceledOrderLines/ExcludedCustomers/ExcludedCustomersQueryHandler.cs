@@ -62,5 +62,4 @@ public class ExcludedCustomersQueryHandler : IRequestHandler<ExcludedCustomersQu
 
         return customerLegalEntities;
     }
-
 }
