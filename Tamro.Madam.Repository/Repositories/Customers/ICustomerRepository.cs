@@ -7,4 +7,5 @@ public interface ICustomerRepository
 {
     Task<Customer> Get(Expression<Func<Customer, bool>> filter, List<IncludeOperation<Customer>>? includes = null, bool track = true, CancellationToken cancellationToken = default);
     Task<List<Customer>> GetMany(Expression<Func<Customer, bool>> filter, List<IncludeOperation<Customer>>? includes = null, bool track = false, CancellationToken cancellationToken = default);
+    Task<Customer> Upsert(Customer entity, CancellationToken cancellationToken);
 }

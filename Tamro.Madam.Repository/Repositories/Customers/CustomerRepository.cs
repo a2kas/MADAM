@@ -27,6 +27,18 @@ public class CustomerRepository : ICustomerRepository
         return await query.ToListAsync(cancellationToken);
     }
 
+    public async Task<Customer> Upsert(Customer entity, CancellationToken cancellationToken)
+    {
+        if (entity.Id == default)
+        {
+            var repository = _uow.GetRepository<Customer>();
+            repository.Create(entity);
+        }
+
+        await _uow.SaveChangesAsync(cancellationToken);
+        return entity;
+    }
+
     private IQueryable<Customer> GetQuery(Expression<Func<Customer, bool>> filter, List<IncludeOperation<Customer>>? includes = null, bool track = false)
     {
         IQueryable<Customer> query = _uow.GetRepository<Customer>().AsQueryable();

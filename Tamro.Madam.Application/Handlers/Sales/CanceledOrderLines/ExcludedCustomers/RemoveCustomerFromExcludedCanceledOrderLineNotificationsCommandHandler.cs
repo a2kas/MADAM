@@ -11,16 +11,18 @@ namespace Tamro.Madam.Application.Handlers.Sales.CanceledOrderLines.ExcludedCust
 public class RemoveCustomerFromExcludedCanceledOrderLineNotificationsCommandHandler : IRequestHandler<RemoveCustomerFromExcludedCanceledOrderLineNotificationsCommand, Result<int>>
 {
     private readonly ICustomerLegalEntityNotificationRepository _customerLegalEntityNotificationRepository;
+    private readonly ICustomerNotificationRepository _customerNotificationRepository;
 
-    public RemoveCustomerFromExcludedCanceledOrderLineNotificationsCommandHandler(ICustomerLegalEntityNotificationRepository customerLegalEntityNotificationRepository)
+    public RemoveCustomerFromExcludedCanceledOrderLineNotificationsCommandHandler(ICustomerLegalEntityNotificationRepository customerLegalEntityNotificationRepository, ICustomerNotificationRepository customerNotificationRepository)
     {
+        _customerNotificationRepository = customerNotificationRepository;
         _customerLegalEntityNotificationRepository = customerLegalEntityNotificationRepository;
     }
 
     public async Task<Result<int>> Handle(RemoveCustomerFromExcludedCanceledOrderLineNotificationsCommand request, CancellationToken cancellationToken)
     {
         await _customerLegalEntityNotificationRepository.MarkSendCanceledOrderNotification(request.Id.ToList(), true, cancellationToken);
-
+        await _customerNotificationRepository.MarkSendCanceledOrderNotification(request.Id.ToList(), true, cancellationToken);
         return Result<int>.Success(request.Id.Length);
     }
 }

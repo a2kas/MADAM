@@ -3,6 +3,7 @@
 public class WholesaleCustomerClsfModel
 {
     public int AddressNumber { get; set; }
+    public int AddressNumber2 { get; set; }
     public string Name { get; set; }
     public string DisplayName { get { return $"{AddressNumber} - {Name}"; } }
 }

@@ -13,9 +13,9 @@ public class ExcludedCustomersSpecification : Specification<CustomerLegalEntity>
     {
         Query.Where(x =>
             (x.NotificationSettings != null && x.NotificationSettings.SendCanceledOrderNotification == false) ||
-            (x.Customer != null && x.Customer.CustomerNotification != null &&
-             x.Customer.CustomerNotification.SendCanceledOrderNotification == false &&
-            (x.NotificationSettings == null || x.NotificationSettings.SendCanceledOrderNotification == true))
+            (x.Customers != null && x.Customers.Any(c =>
+                c.CustomerNotification != null &&
+                c.CustomerNotification.SendCanceledOrderNotification == false))
         );
 
         if (filter.Country != null)
@@ -51,10 +51,10 @@ public class ExcludedCustomersSpecification : Specification<CustomerLegalEntity>
                     }
                     else if (exclusionLevel == ExclusionLevel.OneOrMorePhysicalLocations)
                     {
-                        Query.Where(x => x.Customer != null &&
-                                        x.Customer.CustomerNotification != null &&
-                                        x.Customer.CustomerNotification.SendCanceledOrderNotification == false &&
-                                        (x.NotificationSettings == null || x.NotificationSettings.SendCanceledOrderNotification == true));
+                        Query.Where(x => x.Customers != null &&
+                                        x.Customers.Any(c => c.CustomerNotification != null &&
+                                                           c.CustomerNotification.SendCanceledOrderNotification == false) &&
+                                        (x.NotificationSettings == null || x.NotificationSettings.SendCanceledOrderNotification != false));
                     }
                 }
             }

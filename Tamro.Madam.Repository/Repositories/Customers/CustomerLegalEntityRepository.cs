@@ -31,11 +31,9 @@ public class CustomerLegalEntityRepository : ICustomerLegalEntityRepository
 
     public async Task<CustomerLegalEntity> Upsert(CustomerLegalEntity entity, CancellationToken cancellationToken)
     {
-        if (entity.Id == default)
-        {
-            var repository = _uow.GetRepository<CustomerLegalEntity>();
-            repository.Create(entity);
-        }
+        var repository = _uow.GetRepository<CustomerLegalEntity>();
+
+        await repository.UpsertAsync(entity);
 
         await _uow.SaveChangesAsync(cancellationToken);
 

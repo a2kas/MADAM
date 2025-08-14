@@ -36,19 +36,34 @@
                     </MudAutocomplete>
                 </MudItem>
 
-                <MudItem xs="12" Class="mt-4">
-                    <MudText Typo="Typo.subtitle2" Class="mb-2">Exclude</MudText>
-                    <MudRadioGroup T="ExclusionLevel"
-                        @bind-Value="_model.ExclusionType"
-                        @bind-Value:after="OnExclusionTypeChanged">
-                        <MudRadio T="ExclusionLevel" Option="@ExclusionLevel.EntireLegalEntity" Color="Color.Primary" Dense="true">
-                            <MudText>Entire legal entity</MudText>
-                        </MudRadio>
-                        <MudRadio T="ExclusionLevel" Option="@ExclusionLevel.OneOrMorePhysicalLocations" Color="Color.Primary" Dense="true">
-                            <MudText>One or more physical locations</MudText>
-                        </MudRadio>
-                    </MudRadioGroup>
-                </MudItem>
+
+                @if (_isEditMode)
+                {
+                    <MudItem xs="12" Class="mt-4">
+                        <MudText Typo="Typo.subtitle2" Class="mb-2">Exclude</MudText>
+                        <MudRadioGroup T="ExclusionLevel" @bind-Value="@_model.ExclusionType" @bind-Value:after="OnExclusionTypeChanged">
+                            <MudRadio Value="@ExclusionLevel.EntireLegalEntity" Color="Color.Primary" Dense="true">
+                                <MudText>Entire legal entity</MudText>
+                            </MudRadio>
+                            <MudRadio Value="@ExclusionLevel.OneOrMorePhysicalLocations" Color="Color.Primary" Dense="true">
+                                <MudText>One or more physical locations</MudText>
+                            </MudRadio>
+                        </MudRadioGroup>
+                    </MudItem>
+                }
+                else
+                {
+                    <MudItem xs="12" Class="mt-4">
+                        <MudAlert Severity="Severity.Info" Class="mb-2">
+                            <MudText Typo="Typo.body2">
+                                <strong>Exclusion Type:</strong> Entire legal entity
+                            </MudText>
+                            <MudText Typo="Typo.caption">
+                                New exclusions are created for the entire legal entity. You can modify this after creation by editing the exclusion.
+                            </MudText>
+                        </MudAlert>
+                    </MudItem>
+                }
 
                 @if (_model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations && _model.Customer != null)
                 {

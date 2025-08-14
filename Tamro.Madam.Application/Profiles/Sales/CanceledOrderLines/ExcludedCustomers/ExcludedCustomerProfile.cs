@@ -11,14 +11,23 @@ public class ExcludedCustomerProfile : Profile
     {
         CreateMap<CustomerLegalEntity, ExcludedCustomerGridModel>()
             .ForMember(d => d.Name, o => o.Ignore())
-            .ForMember(d => d.ExclusionLevel, o => o.MapFrom(src =>
-                (src.NotificationSettings != null && src.NotificationSettings.SendCanceledOrderNotification == false)
-                    ? ExclusionLevel.EntireLegalEntity
-                    : (src.Customer != null && src.Customer.CustomerNotification != null &&
-                       src.Customer.CustomerNotification.SendCanceledOrderNotification == false &&
-                       (src.NotificationSettings == null || src.NotificationSettings.SendCanceledOrderNotification == true))
-                        ? ExclusionLevel.OneOrMorePhysicalLocations
-                        : ExclusionLevel.None
-            ));
+            .ForMember(d => d.ExclusionLevel, o => o.MapFrom(src => GetExclusionLevel(src)));
+    }
+
+    private static ExclusionLevel GetExclusionLevel(CustomerLegalEntity entity)
+    {
+        if (entity.NotificationSettings != null && entity.NotificationSettings.SendCanceledOrderNotification == false)
+        {
+            return ExclusionLevel.EntireLegalEntity;
+        }
+
+        if (entity.Customers != null && entity.Customers.Any(c =>
+            c.CustomerNotification != null &&
+            c.CustomerNotification.SendCanceledOrderNotification == false))
+        {
+            return ExclusionLevel.OneOrMorePhysicalLocations;
+        }
+
+        return ExclusionLevel.None;
     }
 }

@@ -35,8 +35,8 @@ public class ExcludedCustomersQueryHandler : IRequestHandler<ExcludedCustomersQu
         var customerLegalEntities = await _uow.GetRepository<CustomerLegalEntity>()
             .AsReadOnlyQueryable()
             .Include(x => x.NotificationSettings)
-            .Include(x => x.Customer)
-            .Include(x => x.Customer.CustomerNotification)
+            .Include(x => x.Customers)
+            .ThenInclude(x => x.CustomerNotification)
             .OrderBy($"{request.OrderBy} {request.SortDirection}")
             .ProjectToPaginatedDataAsync<CustomerLegalEntity, ExcludedCustomerGridModel>(
                 request.Specification, request.PageNumber, request.PageSize, _mapper.ConfigurationProvider, cancellationToken);

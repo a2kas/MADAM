@@ -45,6 +45,11 @@ public partial class ExcludedCustomersDetailsDialog
     {
         _isEditMode = IsEditMode;
 
+        if (!_isEditMode)
+        {
+            _model.ExclusionType = ExclusionLevel.EntireLegalEntity;
+        }
+
         if (_isEditMode && ExcludedCustomerId.HasValue)
         {
             await InitializeForEdit(ExcludedCustomerId.Value);
@@ -83,27 +88,17 @@ public partial class ExcludedCustomersDetailsDialog
 
     private async Task OnExclusionTypeChanged()
     {
-        //try
-        //{
-        //    Console.WriteLine($"OnExclusionTypeChanged called with: {_model.ExclusionType}");
+        if (_isEditMode && _model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations && _model.Customer != null)
+        {
+            await LoadCustomerLocations();
+        }
+        else
+        {
+            _customerLocations.Clear();
+            _model.SelectedShipToAddresses.Clear();
+        }
 
-        //    if (_model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations && _model.Customer != null)
-        //    {
-        //        await LoadCustomerLocations();
-        //    }
-        //    else
-        //    {
-        //        _customerLocations.Clear();
-        //        _model.SelectedShipToAddresses.Clear();
-        //    }
-
-        //    StateHasChanged();
-        //}
-        //catch (Exception ex)
-        //{
-        //    Console.WriteLine($"Error in OnExclusionTypeChanged: {ex.Message}");
-        //    // Handle the exception appropriately
-        //}
+        StateHasChanged();
     }
 
     private async Task LoadCustomerLocations()
@@ -176,6 +171,7 @@ public partial class ExcludedCustomersDetailsDialog
         _model.SelectedShipToAddresses = _customerLocations.Select(x => x.E1ShipTo).ToList();
         StateHasChanged();
     }
+
     private void ClearAll()
     {
         foreach (var location in _customerLocations)
@@ -210,6 +206,9 @@ public partial class ExcludedCustomersDetailsDialog
         if (_model.Customer == null)
             return false;
 
+        if (!_isEditMode)
+            return true;
+
         if (_model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations)
         {
             return _model.SelectedShipToAddresses.Any();
@@ -218,20 +217,17 @@ public partial class ExcludedCustomersDetailsDialog
         return true;
     }
 
-    private EventCallback<ExclusionLevel> ExclusionTypeChangedCallback =>
-    EventCallback.Factory.Create<ExclusionLevel>(this, OnExclusionTypeChanged);
-
     private async Task OnCustomerChanged()
     {
-        if (_model.Customer != null && _model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations)
+        _customerLocations.Clear();
+        _model.SelectedShipToAddresses.Clear();
+
+        if (_isEditMode && _model.Customer != null && _model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations)
         {
             await LoadCustomerLocations();
         }
-        else
-        {
-            _customerLocations.Clear();
-            _model.SelectedShipToAddresses.Clear();
-        }
+
+        StateHasChanged();
     }
 
     public async Task InitializeForEdit(int excludedCustomerId)
@@ -246,6 +242,9 @@ public partial class ExcludedCustomersDetailsDialog
             if (result.Succeeded)
             {
                 _model = result.Data;
+
+                // Force the radio button to show the correct selection
+                StateHasChanged();
 
                 if (_model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations)
                 {
@@ -274,7 +273,7 @@ public partial class ExcludedCustomersDetailsDialog
 
             if (!_form.IsValid || !IsFormValid())
             {
-                if (_model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations && !_model.SelectedShipToAddresses.Any())
+                if (_isEditMode && _model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations && !_model.SelectedShipToAddresses.Any())
                 {
                     Snackbar.Add("Please select at least one location to exclude", Severity.Warning);
                 }
@@ -282,7 +281,13 @@ public partial class ExcludedCustomersDetailsDialog
             }
 
             _model.Country = _userProfileState.Value.UserProfile.Country ?? BalticCountry.LV;
-            if (_model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations)
+
+            if (!_isEditMode)
+            {
+                _model.ExclusionType = ExclusionLevel.EntireLegalEntity;
+                _model.SelectedShipToAddresses.Clear();
+            }
+            else if (_model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations)
             {
                 _model.SelectedShipToAddresses = _customerLocations
                     .Where(x => x.IsSelected)

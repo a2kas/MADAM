@@ -36,8 +36,8 @@ public class GetExcludedCustomerForEditQueryHandler : IRequestHandler<GetExclude
         var legalEntity = await _uow.GetRepository<CustomerLegalEntity>()
             .AsReadOnlyQueryable()
             .Include(x => x.NotificationSettings)
-            .Include(x => x.Customer)
-            .Include(x => x.Customer.CustomerNotification)
+            .Include(x => x.Customers)
+            .ThenInclude(x => x.CustomerNotification)
             .FirstOrDefaultAsync(x => x.Id == request.Id, cancellationToken);
 
         if (legalEntity == null)
@@ -61,26 +61,29 @@ public class GetExcludedCustomerForEditQueryHandler : IRequestHandler<GetExclude
         {
             exclusionType = ExclusionLevel.EntireLegalEntity;
         }
-        else if (legalEntity.Customer?.CustomerNotification?.SendCanceledOrderNotification == false)
+        else if (legalEntity.Customers?.Any(c => c.CustomerNotification?.SendCanceledOrderNotification == false) == true)
         {
             exclusionType = ExclusionLevel.OneOrMorePhysicalLocations;
-            selectedShipToAddresses = await _uow.GetRepository<Customer>()
-                .AsReadOnlyQueryable()
-                .Include(x => x.CustomerNotification)
-                .Where(x => x.CustomerLegalEntityId == legalEntity.Id &&
-                           x.CustomerNotification != null &&
-                           x.CustomerNotification.SendCanceledOrderNotification == false)
-                .Select(x => x.E1ShipTo)
-                .ToListAsync(cancellationToken);
+            selectedShipToAddresses = legalEntity.Customers
+                .Where(c => c.CustomerNotification?.SendCanceledOrderNotification == false)
+                .Select(c => c.E1ShipTo)
+                .ToList();
         }
 
-        var locationsResult = await _mediator.Send(new GetCustomerLocationsQuery(legalEntity.E1SoldTo, legalEntity.Country), cancellationToken);
-        var availableLocations = locationsResult.Succeeded ? locationsResult.Data.ToList() : new List<CustomerLocationModel>();
+        var allCustomerData = await _wholesaleCustomerRepositoryFactory.Get(legalEntity.Country)
+            .GetClsf(addressNumbers: new[] { legalEntity.E1SoldTo }, WholesaleCustomerType.All, 1, int.MaxValue);
 
-        foreach (var location in availableLocations)
-        {
-            location.IsSelected = selectedShipToAddresses.Contains(location.E1ShipTo);
-        }
+        var availableLocations = allCustomerData.Items
+            .Where(x => x.AddressNumber != legalEntity.E1SoldTo)
+            .Select(x => new CustomerLocationModel
+            {
+                E1ShipTo = x.AddressNumber,
+                Name = x.Name,
+                IsExcluded = selectedShipToAddresses.Contains(x.AddressNumber),
+                IsSelected = selectedShipToAddresses.Contains(x.AddressNumber)
+            })
+            .OrderBy(x => x.Name)
+            .ToList();
 
         var model = new ExcludedCustomerDetailsModel
         {

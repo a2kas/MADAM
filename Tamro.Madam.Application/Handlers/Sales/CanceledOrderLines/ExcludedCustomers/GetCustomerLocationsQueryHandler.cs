@@ -28,39 +28,34 @@ public class GetCustomerLocationsQueryHandler : IRequestHandler<GetCustomerLocat
 
     public async Task<Result<IEnumerable<CustomerLocationModel>>> Handle(GetCustomerLocationsQuery request, CancellationToken cancellationToken)
     {
-        var wholesaleCustomers = await _wholesaleCustomerRepositoryFactory.Get(request.Country)
-            .GetClsf(addressNumbers: [request.E1SoldTo], WholesaleCustomerType.All, 1, int.MaxValue);
+        var allCustomers = await _wholesaleCustomerRepositoryFactory.Get(request.Country)
+            .GetClsf(string.Empty, WholesaleCustomerType.All, 1, int.MaxValue);
 
-        if (!wholesaleCustomers.Items.Any())
+        if (!allCustomers.Items.Any())
         {
             return Result<IEnumerable<CustomerLocationModel>>.Success([]);
         }
 
         var legalEntity = await _uow.GetRepository<CustomerLegalEntity>()
             .AsReadOnlyQueryable()
+            .Include(x => x.Customers)
+            .ThenInclude(x => x.CustomerNotification)
             .FirstOrDefaultAsync(x => x.E1SoldTo == request.E1SoldTo && x.Country == request.Country, cancellationToken);
 
-        HashSet<int> existingExclusions;
-        if (legalEntity != null)
+        HashSet<int> existingExclusions = [];
+        if (legalEntity?.Customers?.Any() == true)
         {
-            var exclusionList = await _uow.GetRepository<Customer>()
-                .AsReadOnlyQueryable()
-                .Include(x => x.CustomerNotification)
-                .Where(x => x.CustomerLegalEntityId == legalEntity.Id &&
-                           x.CustomerNotification != null &&
-                           x.CustomerNotification.SendCanceledOrderNotification == false)
-                .Select(x => x.E1ShipTo)
-                .ToListAsync(cancellationToken);
-
-            existingExclusions = [.. exclusionList];
-        }
-        else
-        {
-            existingExclusions = [];
+            existingExclusions = legalEntity.Customers
+                .Where(c => c.CustomerNotification?.SendCanceledOrderNotification == false)
+                .Select(c => c.E1ShipTo)
+                .ToHashSet();
         }
 
-        var locations = wholesaleCustomers.Items
-            .Where(x => x.AddressNumber != request.E1SoldTo)
+        var physicalLocations = allCustomers.Items
+            .Where(x =>
+                x.AddressNumber2 == request.E1SoldTo &&
+                x.AddressNumber != x.AddressNumber2 
+            )
             .Select(x => new CustomerLocationModel
             {
                 E1ShipTo = x.AddressNumber,
@@ -71,6 +66,6 @@ public class GetCustomerLocationsQueryHandler : IRequestHandler<GetCustomerLocat
             .OrderBy(x => x.Name)
             .ToList();
 
-        return Result<IEnumerable<CustomerLocationModel>>.Success(locations);
+        return Result<IEnumerable<CustomerLocationModel>>.Success(physicalLocations);
     }
 }

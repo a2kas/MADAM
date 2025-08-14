@@ -85,6 +85,7 @@ internal static class DatabasesSetup
         services.AddTransient<IE1HeldOrderRepository, E1HeldOrderRepository>();
         services.AddTransient<IUblApiKeyRepository, UblApiKeyRepository>();
         services.AddTransient<ICustomerRepository, CustomerRepository>();
+        services.AddTransient<ICustomerNotificationRepository, CustomerNotificationRepository>();
 
         services.AddDbContext<WhRawLtDatabaseContext>((provider, optionsBuilder) =>
         {
