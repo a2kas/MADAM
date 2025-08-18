@@ -32,6 +32,11 @@ public class ExcludeCustomerFromCanceledOrderLineNotificationsCommandHandler : I
     public async Task<Result<int>> Handle(ExcludeCustomerFromCanceledOrderLineNotificationsCommand request, CancellationToken cancellationToken)
     {
         var model = request.Model;
+        Console.WriteLine($"Processing exclusion command:");
+        Console.WriteLine($"  Customer: {model.Customer.AddressNumber}");
+        Console.WriteLine($"  ExclusionType: {model.ExclusionType}");
+        Console.WriteLine($"  SelectedShipToAddresses: {string.Join(", ", model.SelectedShipToAddresses ?? new List<int>())}");
+
         var includes = new List<IncludeOperation<CustomerLegalEntity>>
         {
             new(q => q.Include(c => c.NotificationSettings)),
@@ -52,10 +57,16 @@ public class ExcludeCustomerFromCanceledOrderLineNotificationsCommandHandler : I
                 Country = model.Country,
                 IsActive = true,
             };
+            Console.WriteLine("Created new CustomerLegalEntity");
+        }
+        else
+        {
+            Console.WriteLine($"Found existing CustomerLegalEntity with ID: {customerLegalEntity.Id}");
         }
 
         if (model.ExclusionType == ExclusionLevel.EntireLegalEntity)
         {
+            Console.WriteLine("Setting up entire legal entity exclusion");
             if (customerLegalEntity.NotificationSettings == null)
             {
                 customerLegalEntity.NotificationSettings = new CustomerLegalEntityNotification
@@ -69,6 +80,7 @@ public class ExcludeCustomerFromCanceledOrderLineNotificationsCommandHandler : I
                 customerLegalEntity.NotificationSettings.SendCanceledOrderNotification = false;
             }
 
+            // FIX: Reset all physical location exclusions when excluding entire legal entity
             if (customerLegalEntity.Customers?.Any() == true)
             {
                 foreach (var customer in customerLegalEntity.Customers)
@@ -82,19 +94,46 @@ public class ExcludeCustomerFromCanceledOrderLineNotificationsCommandHandler : I
         }
         else if (model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations)
         {
+            Console.WriteLine("Setting up physical location exclusions");
+
+            // FIX: Ensure legal entity is set to receive notifications when using location-based exclusions
             if (customerLegalEntity.NotificationSettings != null)
             {
                 customerLegalEntity.NotificationSettings.SendCanceledOrderNotification = true;
+                Console.WriteLine("Set legal entity to receive notifications");
             }
 
-            await HandleLocationExclusionsSimple(customerLegalEntity, model.SelectedShipToAddresses, cancellationToken);
+            // FIX: Only proceed if there are actually locations to exclude
+            if (model.SelectedShipToAddresses?.Any() == true)
+            {
+                await HandleLocationExclusionsImproved(customerLegalEntity, model.SelectedShipToAddresses, cancellationToken);
+            }
+            else
+            {
+                Console.WriteLine("WARNING: No locations selected for exclusion");
+                // FIX: If no locations are selected but user chose physical locations, 
+                // we should still keep the legal entity record but ensure all locations are enabled
+                if (customerLegalEntity.Customers?.Any() == true)
+                {
+                    foreach (var customer in customerLegalEntity.Customers)
+                    {
+                        if (customer.CustomerNotification != null)
+                        {
+                            customer.CustomerNotification.SendCanceledOrderNotification = true;
+                        }
+                    }
+                }
+            }
         }
 
         var result = await _customerLegalEntityRepository.Upsert(customerLegalEntity, cancellationToken);
+        Console.WriteLine($"Saved CustomerLegalEntity with ID: {result.Id}");
+
         return Result<int>.Success(result.Id);
     }
 
-    private async Task HandleLocationExclusionsSimple(CustomerLegalEntity customerLegalEntity, List<int> selectedShipToAddresses, CancellationToken cancellationToken)
+    // FIX: Improved method to handle location exclusions with proper state management
+    private async Task HandleLocationExclusionsImproved(CustomerLegalEntity customerLegalEntity, List<int> selectedShipToAddresses, CancellationToken cancellationToken)
     {
         if (customerLegalEntity.Id == 0)
         {
@@ -110,6 +149,10 @@ public class ExcludeCustomerFromCanceledOrderLineNotificationsCommandHandler : I
             true,
             cancellationToken);
 
+        // Get all physical locations for this legal entity from the wholesale system
+        // This ensures we can properly set the notification status for all locations
+
+        // Process selected locations for exclusion
         foreach (var shipToAddress in selectedShipToAddresses)
         {
             var existingCustomer = existingCustomers.FirstOrDefault(c => c.E1ShipTo == shipToAddress);
@@ -152,9 +195,21 @@ public class ExcludeCustomerFromCanceledOrderLineNotificationsCommandHandler : I
             }
         }
 
+        // FIX: Properly handle locations that should be re-enabled (not in selectedShipToAddresses)
         foreach (var customer in existingCustomers.Where(c => !selectedShipToAddresses.Contains(c.E1ShipTo)))
         {
-            if (customer.CustomerNotification != null)
+            if (customer.CustomerNotification == null)
+            {
+                // Create notification setting with default true (not excluded)
+                var customerNotificationRepo = _uow.GetRepository<CustomerNotification>();
+                var notification = new CustomerNotification
+                {
+                    CustomerId = customer.Id,
+                    SendCanceledOrderNotification = true
+                };
+                customerNotificationRepo.Create(notification);
+            }
+            else
             {
                 customer.CustomerNotification.SendCanceledOrderNotification = true;
             }

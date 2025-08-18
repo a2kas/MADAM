@@ -16,16 +16,24 @@ public class ExcludedCustomerProfile : Profile
 
     private static ExclusionLevel GetExclusionLevel(CustomerLegalEntity entity)
     {
-        if (entity.NotificationSettings != null && entity.NotificationSettings.SendCanceledOrderNotification == false)
+        var hasLegalEntityExclusion = entity.NotificationSettings?.SendCanceledOrderNotification == false;
+        var hasPhysicalLocationExclusions = entity.Customers?.Any(c =>
+            c.CustomerNotification?.SendCanceledOrderNotification == false) == true;
+
+        if (hasLegalEntityExclusion)
         {
             return ExclusionLevel.EntireLegalEntity;
         }
 
-        if (entity.Customers != null && entity.Customers.Any(c =>
-            c.CustomerNotification != null &&
-            c.CustomerNotification.SendCanceledOrderNotification == false))
+        if (hasPhysicalLocationExclusions)
         {
             return ExclusionLevel.OneOrMorePhysicalLocations;
+        }
+
+        if (entity.NotificationSettings != null ||
+            (entity.Customers?.Any(c => c.CustomerNotification != null) == true))
+        {
+            return ExclusionLevel.None;
         }
 
         return ExclusionLevel.None;

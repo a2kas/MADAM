@@ -41,20 +41,54 @@ public class ExcludedCustomersSpecification : Specification<CustomerLegalEntity>
             }
             else if (appliedFilter.Column.PropertyName.Equals(nameof(ExcludedCustomerGridModel.ExclusionLevel)))
             {
-                var filterValue = appliedFilter.Value?.ToString();
-                if (!string.IsNullOrEmpty(filterValue) && Enum.TryParse<ExclusionLevel>(filterValue, out var exclusionLevel))
+                if (appliedFilter.Value is string filterValue && !string.IsNullOrEmpty(filterValue))
                 {
-                    if (exclusionLevel == ExclusionLevel.EntireLegalEntity)
+                    if (Enum.TryParse<ExclusionLevel>(filterValue, out var exclusionLevel))
                     {
-                        Query.Where(x => x.NotificationSettings != null &&
-                                        x.NotificationSettings.SendCanceledOrderNotification == false);
+                        if (exclusionLevel == ExclusionLevel.EntireLegalEntity)
+                        {
+                            Query.Where(x => x.NotificationSettings != null &&
+                                            x.NotificationSettings.SendCanceledOrderNotification == false);
+                        }
+                        else if (exclusionLevel == ExclusionLevel.OneOrMorePhysicalLocations)
+                        {
+                            Query.Where(x => x.Customers != null &&
+                                            x.Customers.Any(c => c.CustomerNotification != null &&
+                                                               c.CustomerNotification.SendCanceledOrderNotification == false) &&
+                                            (x.NotificationSettings == null || x.NotificationSettings.SendCanceledOrderNotification != false));
+                        }
                     }
-                    else if (exclusionLevel == ExclusionLevel.OneOrMorePhysicalLocations)
+                }
+
+                else if (appliedFilter.Value is IEnumerable<object> values)
+                {
+                    var exclusionLevels = values
+                        .Select(v => v?.ToString())
+                        .Where(s => !string.IsNullOrEmpty(s) && Enum.TryParse<ExclusionLevel>(s, out _))
+                        .Select(s => Enum.Parse<ExclusionLevel>(s))
+                        .ToList();
+
+                    if (exclusionLevels.Any())
                     {
-                        Query.Where(x => x.Customers != null &&
-                                        x.Customers.Any(c => c.CustomerNotification != null &&
-                                                           c.CustomerNotification.SendCanceledOrderNotification == false) &&
-                                        (x.NotificationSettings == null || x.NotificationSettings.SendCanceledOrderNotification != false));
+                        var hasEntireLegalEntity = exclusionLevels.Contains(ExclusionLevel.EntireLegalEntity);
+                        var hasPhysicalLocations = exclusionLevels.Contains(ExclusionLevel.OneOrMorePhysicalLocations);
+
+                        if (hasEntireLegalEntity && hasPhysicalLocations)
+                        {
+                            // Both types - use existing base filter (no additional filtering needed)
+                        }
+                        else if (hasEntireLegalEntity)
+                        {
+                            Query.Where(x => x.NotificationSettings != null &&
+                                            x.NotificationSettings.SendCanceledOrderNotification == false);
+                        }
+                        else if (hasPhysicalLocations)
+                        {
+                            Query.Where(x => x.Customers != null &&
+                                            x.Customers.Any(c => c.CustomerNotification != null &&
+                                                               c.CustomerNotification.SendCanceledOrderNotification == false) &&
+                                            (x.NotificationSettings == null || x.NotificationSettings.SendCanceledOrderNotification != false));
+                        }
                     }
                 }
             }

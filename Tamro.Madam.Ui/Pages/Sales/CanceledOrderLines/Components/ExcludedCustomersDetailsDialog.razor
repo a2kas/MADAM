@@ -32,10 +32,10 @@
                                      Variant="Variant.Outlined"
                                      ShowProgressIndicator="true"
                                      Disabled="@_isEditMode"
-                                     HelperText="@(_isEditMode ? "Customer cannot be changed when editing" : "")">>
+                                     HelperText="@(_isEditMode ? "Customer cannot be changed when editing" : "")">
+                        >
                     </MudAutocomplete>
                 </MudItem>
-
 
                 @if (_isEditMode)
                 {
@@ -69,7 +69,7 @@
                 {
                     <MudItem xs="12" Class="mt-4">
                         <MudText Typo="Typo.subtitle2" Class="mb-2">Select physical locations to exclude</MudText>
-                        
+
                         @if (_loadingLocations)
                         {
                             <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="300px" />
@@ -88,19 +88,21 @@
                                         @GetSelectionSummary()
                                     </MudText>
                                     <div>
-                                        <MudButton Size="Size.Small" 
+                                        <MudButton Size="Size.Small"
                                                    StartIcon="@Icons.Material.Filled.SelectAll"
-                                                   OnClick="SelectAll">
+                                                   OnClick="SelectAll"
+                                                   Variant="Variant.Outlined">
                                             Select All
                                         </MudButton>
-                                        <MudButton Size="Size.Small" 
+                                        <MudButton Size="Size.Small"
                                                    StartIcon="@Icons.Material.Filled.ClearAll"
-                                                   OnClick="ClearAll">
+                                                   OnClick="ClearAll"
+                                                   Variant="Variant.Outlined">
                                             Clear All
                                         </MudButton>
                                     </div>
                                 </div>
-                                
+
                                 <MudDataGrid T="CustomerLocationModel"
                                              Items="@_customerLocations"
                                              Dense="true"
@@ -108,33 +110,19 @@
                                              Bordered="true"
                                              Striped="true"
                                              FixedHeader="true"
-                                             Height="300px"
-                                             RowClassFunc="@GetRowClass">
+                                             Height="300px">
                                     <Columns>
-                                        <TemplateColumn Title="" CellClass="d-flex justify-center" Width="60px">
-                                            <CellTemplate>
-                                                <MudCheckBox Checked="@context.Item.IsSelected"
-                                                             ValueChanged="@(EventCallback.Factory.Create<bool>(this, value => OnLocationSelectionChanged(context.Item, value)))"
-                                                             Color="Color.Primary"
-                                                             Dense="true" />
-                                            </CellTemplate>
-                                        </TemplateColumn>
-                                        <PropertyColumn Property="x => x.E1ShipTo" Title="Ship to" />
+                                        <PropertyColumn Property="x => x.E1ShipTo" Title="E1 Ship to" />
                                         <PropertyColumn Property="x => x.Name" Title="Name" />
-                                        <TemplateColumn Title="Status" Width="120px">
+                                        <TemplateColumn Title="Is excluded" CellClass="d-flex justify-center" Width="100px">
                                             <CellTemplate>
-                                                @if (context.Item.IsExcluded && !context.Item.IsSelected)
-                                                {
-                                                    <MudChip Size="Size.Small" Color="Color.Warning" Text="Currently Excluded" />
-                                                }
-                                                else if (context.Item.IsSelected)
-                                                {
-                                                    <MudChip Size="Size.Small" Color="Color.Error" Text="Will be Excluded" />
-                                                }
-                                                else
-                                                {
-                                                    <MudChip Size="Size.Small" Color="Color.Success" Text="Active" />
-                                                }
+                                                <MudCheckBox T="bool"
+                                                             Color="Color.Primary"
+                                                             Size="Size.Small"
+                                                             Dense
+                                                             Value="@IsLocationExcluded(context.Item)"
+                                                             ValueChanged="@((value) => OnLocationSelectionChanged(value, context.Item))">
+                                                </MudCheckBox>
                                             </CellTemplate>
                                         </TemplateColumn>
                                     </Columns>
@@ -151,10 +139,10 @@
     </DialogContent>
     <DialogActions>
         <MudButton StartIcon="@Icons.Material.Filled.Cancel" OnClick="Cancel">Cancel</MudButton>
-        <MudLoadingButton StartIcon="@Icons.Material.Filled.Save" 
-                          Variant="Variant.Filled" 
-                          Color="Color.Primary" 
-                          Loading="@_saving" 
+        <MudLoadingButton StartIcon="@Icons.Material.Filled.Save"
+                          Variant="Variant.Filled"
+                          Color="Color.Primary"
+                          Loading="@_saving"
                           OnClick="Submit"
                           Disabled="@(!IsFormValid())">
             @(_isEditMode ? "Update" : "Save")

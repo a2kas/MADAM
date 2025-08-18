@@ -45,6 +45,9 @@ public partial class ExcludedCustomersDetailsDialog
     {
         _isEditMode = IsEditMode;
 
+        // Always initialize the list
+        _model.SelectedShipToAddresses = new List<int>();
+
         if (!_isEditMode)
         {
             _model.ExclusionType = ExclusionLevel.EntireLegalEntity;
@@ -88,7 +91,7 @@ public partial class ExcludedCustomersDetailsDialog
 
     private async Task OnExclusionTypeChanged()
     {
-        if (_isEditMode && _model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations && _model.Customer != null)
+        if (_model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations && _model.Customer != null)
         {
             await LoadCustomerLocations();
         }
@@ -116,12 +119,16 @@ public partial class ExcludedCustomersDetailsDialog
             if (result.Succeeded)
             {
                 _customerLocations = result.Data.ToList();
-                if (_isEditMode)
+
+                // DEBUG: Log what we're loading
+                Console.WriteLine($"Loaded {_customerLocations.Count} locations");
+                Console.WriteLine($"Model has {_model.SelectedShipToAddresses?.Count ?? 0} selected addresses: {string.Join(", ", _model.SelectedShipToAddresses ?? new List<int>())}");
+
+                // FIX: Set selection state based on model's SelectedShipToAddresses, not IsExcluded
+                foreach (var location in _customerLocations)
                 {
-                    foreach (var location in _customerLocations)
-                    {
-                        location.IsSelected = _model.SelectedShipToAddresses.Contains(location.E1ShipTo);
-                    }
+                    location.IsSelected = _model.SelectedShipToAddresses?.Contains(location.E1ShipTo) ?? false;
+                    Console.WriteLine($"Location {location.E1ShipTo}: IsSelected = {location.IsSelected}, IsExcluded = {location.IsExcluded}, In SelectedShipToAddresses = {_model.SelectedShipToAddresses?.Contains(location.E1ShipTo)}");
                 }
             }
             else
@@ -130,8 +137,9 @@ public partial class ExcludedCustomersDetailsDialog
                 _customerLocations.Clear();
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error loading locations: {ex.Message}");
             Snackbar.Add("Failed to load customer locations", Severity.Error);
             _customerLocations.Clear();
         }
@@ -142,8 +150,10 @@ public partial class ExcludedCustomersDetailsDialog
         }
     }
 
-    private void OnLocationSelectionChanged(CustomerLocationModel location, bool isSelected)
+    private void OnLocationSelectionChanged(bool isSelected, CustomerLocationModel location)
     {
+        Console.WriteLine($"Selection changed for {location.E1ShipTo}: {isSelected}");
+
         location.IsSelected = isSelected;
 
         if (isSelected)
@@ -151,35 +161,55 @@ public partial class ExcludedCustomersDetailsDialog
             if (!_model.SelectedShipToAddresses.Contains(location.E1ShipTo))
             {
                 _model.SelectedShipToAddresses.Add(location.E1ShipTo);
+                Console.WriteLine($"Added {location.E1ShipTo} to selected addresses");
             }
         }
         else
         {
             _model.SelectedShipToAddresses.Remove(location.E1ShipTo);
+            Console.WriteLine($"Removed {location.E1ShipTo} from selected addresses");
         }
 
+        Console.WriteLine($"Selected addresses now: {string.Join(", ", _model.SelectedShipToAddresses)}");
         StateHasChanged();
+    }
+
+    private bool IsLocationExcluded(CustomerLocationModel location)
+    {
+        bool isExcluded = location.IsSelected;
+        Console.WriteLine($"IsLocationExcluded called for {location.E1ShipTo}: returning {isExcluded}");
+        return isExcluded;
     }
 
     private void SelectAll()
     {
+        Console.WriteLine("Select All clicked");
+        Console.WriteLine($"Locations count: {_customerLocations.Count}");
+
         foreach (var location in _customerLocations)
         {
             location.IsSelected = true;
+            if (!_model.SelectedShipToAddresses.Contains(location.E1ShipTo))
+            {
+                _model.SelectedShipToAddresses.Add(location.E1ShipTo);
+            }
         }
 
-        _model.SelectedShipToAddresses = _customerLocations.Select(x => x.E1ShipTo).ToList();
+        Console.WriteLine($"After Select All - Selected addresses: {string.Join(", ", _model.SelectedShipToAddresses)}");
         StateHasChanged();
     }
 
     private void ClearAll()
     {
+        Console.WriteLine("Clear All clicked");
+
         foreach (var location in _customerLocations)
         {
             location.IsSelected = false;
         }
 
         _model.SelectedShipToAddresses.Clear();
+        Console.WriteLine("After Clear All - Selected addresses cleared");
         StateHasChanged();
     }
 
@@ -189,16 +219,6 @@ public partial class ExcludedCustomersDetailsDialog
         var totalCount = _customerLocations.Count;
 
         return $"{selectedCount} of {totalCount} locations selected";
-    }
-
-    private string GetRowClass(CustomerLocationModel item, int index)
-    {
-        if (item.IsSelected)
-            return "mud-error-text";
-        if (item.IsExcluded)
-            return "mud-warning-text";
-
-        return string.Empty;
     }
 
     private bool IsFormValid()
@@ -219,10 +239,11 @@ public partial class ExcludedCustomersDetailsDialog
 
     private async Task OnCustomerChanged()
     {
+        Console.WriteLine("Customer changed");
         _customerLocations.Clear();
         _model.SelectedShipToAddresses.Clear();
 
-        if (_isEditMode && _model.Customer != null && _model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations)
+        if (_model.Customer != null && _model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations)
         {
             await LoadCustomerLocations();
         }
@@ -232,6 +253,7 @@ public partial class ExcludedCustomersDetailsDialog
 
     public async Task InitializeForEdit(int excludedCustomerId)
     {
+        Console.WriteLine($"Initializing for edit: {excludedCustomerId}");
         _isEditMode = true;
 
         try
@@ -243,7 +265,12 @@ public partial class ExcludedCustomersDetailsDialog
             {
                 _model = result.Data;
 
-                // Force the radio button to show the correct selection
+                // Ensure list is never null
+                _model.SelectedShipToAddresses ??= new List<int>();
+
+                Console.WriteLine($"Loaded model with exclusion type: {_model.ExclusionType}");
+                Console.WriteLine($"Selected addresses from model: {string.Join(", ", _model.SelectedShipToAddresses)}");
+
                 StateHasChanged();
 
                 if (_model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations)
@@ -258,6 +285,7 @@ public partial class ExcludedCustomersDetailsDialog
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Error initializing for edit: {ex.Message}");
             Snackbar.Add("Failed to load customer details for editing", Severity.Error);
         }
 
@@ -289,10 +317,13 @@ public partial class ExcludedCustomersDetailsDialog
             }
             else if (_model.ExclusionType == ExclusionLevel.OneOrMorePhysicalLocations)
             {
+                // Ensure we're using the current UI state
                 _model.SelectedShipToAddresses = _customerLocations
                     .Where(x => x.IsSelected)
                     .Select(x => x.E1ShipTo)
                     .ToList();
+
+                Console.WriteLine($"Submitting with selected addresses: {string.Join(", ", _model.SelectedShipToAddresses)}");
             }
             else
             {
@@ -315,6 +346,7 @@ public partial class ExcludedCustomersDetailsDialog
         }
         catch (Exception ex)
         {
+            Console.WriteLine($"Error during submit: {ex.Message}");
             Snackbar.Add("An error occurred while saving", Severity.Error);
         }
         finally

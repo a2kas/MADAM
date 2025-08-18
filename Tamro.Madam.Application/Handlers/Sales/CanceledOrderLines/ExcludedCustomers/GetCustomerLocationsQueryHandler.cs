@@ -42,6 +42,10 @@ public class GetCustomerLocationsQueryHandler : IRequestHandler<GetCustomerLocat
             .ThenInclude(x => x.CustomerNotification)
             .FirstOrDefaultAsync(x => x.E1SoldTo == request.E1SoldTo && x.Country == request.Country, cancellationToken);
 
+        // DEBUG: Add logging
+        Console.WriteLine($"GetCustomerLocationsQuery for E1SoldTo: {request.E1SoldTo}");
+        Console.WriteLine($"Found legal entity: {legalEntity != null}");
+
         HashSet<int> existingExclusions = [];
         if (legalEntity?.Customers?.Any() == true)
         {
@@ -49,22 +53,30 @@ public class GetCustomerLocationsQueryHandler : IRequestHandler<GetCustomerLocat
                 .Where(c => c.CustomerNotification?.SendCanceledOrderNotification == false)
                 .Select(c => c.E1ShipTo)
                 .ToHashSet();
+
+            Console.WriteLine($"Existing exclusions: {string.Join(", ", existingExclusions)}");
         }
 
         var physicalLocations = allCustomers.Items
             .Where(x =>
                 x.AddressNumber2 == request.E1SoldTo &&
-                x.AddressNumber != x.AddressNumber2 
+                x.AddressNumber != x.AddressNumber2
             )
             .Select(x => new CustomerLocationModel
             {
                 E1ShipTo = x.AddressNumber,
                 Name = x.Name,
                 IsExcluded = existingExclusions.Contains(x.AddressNumber),
-                IsSelected = false
+                IsSelected = false // FIX: Always start with false, let the UI set this based on model data
             })
             .OrderBy(x => x.Name)
             .ToList();
+
+        Console.WriteLine($"Physical locations found: {physicalLocations.Count}");
+        foreach (var loc in physicalLocations)
+        {
+            Console.WriteLine($"  Location {loc.E1ShipTo}: IsExcluded={loc.IsExcluded}, IsSelected={loc.IsSelected}");
+        }
 
         return Result<IEnumerable<CustomerLocationModel>>.Success(physicalLocations);
     }

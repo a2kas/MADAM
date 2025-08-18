@@ -71,10 +71,10 @@ public class GetExcludedCustomerForEditQueryHandler : IRequestHandler<GetExclude
         }
 
         var allCustomerData = await _wholesaleCustomerRepositoryFactory.Get(legalEntity.Country)
-            .GetClsf(addressNumbers: new[] { legalEntity.E1SoldTo }, WholesaleCustomerType.All, 1, int.MaxValue);
+            .GetClsf(addressNumbers: [legalEntity.E1SoldTo], WholesaleCustomerType.All, 1, int.MaxValue);
 
         var availableLocations = allCustomerData.Items
-            .Where(x => x.AddressNumber != legalEntity.E1SoldTo)
+            .Where(x => x.AddressNumber != legalEntity.E1SoldTo && x.AddressNumber2 == legalEntity.E1SoldTo)
             .Select(x => new CustomerLocationModel
             {
                 E1ShipTo = x.AddressNumber,
